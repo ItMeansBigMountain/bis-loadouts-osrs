@@ -1,13 +1,15 @@
 {
-  "name": "BossReadinessScore",
+  "name": "Boss Readiness Score",
   "version": "1.0.0",
-  "description": "calculates readiness score for boss fights based on gear and stats",
-  "author": "Affan Fareed",
+  "description": "Scores account readiness for bossing from combat, Hitpoints, Prayer, and Defence levels.",
+  "author": "Oyama",
   "tags": [
     "osrs",
     "runelite",
-    "plugin",
-    "bossreadinessscore"
+    "boss",
+    "pvm",
+    "readiness",
+    "combat"
   ],
   "min_engine_version": "3.0.0"
 }
