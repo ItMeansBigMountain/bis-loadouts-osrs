@@ -1,0 +1,13 @@
+{
+  "name": "BossReadinessScore",
+  "version": "1.0.0",
+  "description": "calculates readiness score for boss fights based on gear and stats",
+  "author": "Affan Fareed",
+  "tags": [
+    "osrs",
+    "runelite",
+    "plugin",
+    "bossreadinessscore"
+  ],
+  "min_engine_version": "3.0.0"
+}

@@ -1,0 +1,2 @@
+# BossReadinessScore
+BossReadinessScore OSRS plugin
