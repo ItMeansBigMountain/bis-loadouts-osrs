@@ -89,3 +89,4 @@ Target UX:
 - Panel shows readiness score plus gear recommendations by slot, prayer/supply notes, missing prerequisites, and simpler upgrade priorities.
 - Use OSRS Wiki-derived item/monster data where possible; GearScape is inspiration for preference-based setup selection and DPS-style comparison, not a private API dependency.
 - Present beginner-friendly defaults before advanced calculator details.
+- GearScape research has been captured in [`docs/gearscape-bis-research.md`](docs/gearscape-bis-research.md), including observed data endpoints, worker payload/result shapes, and a simplified RuneLite implementation model.
