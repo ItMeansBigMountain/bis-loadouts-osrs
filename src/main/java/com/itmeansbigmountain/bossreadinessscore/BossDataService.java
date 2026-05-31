@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -32,6 +33,7 @@ public class BossDataService
 	private static final String GEARSCAPE_MONSTER_ID = "https://api.gearscape.net/api/monster/id/";
 	private static final String GEARSCAPE_EQUIPMENT = "https://api.gearscape.net/api/equipment/all";
 	private static final String GEARSCAPE_WEAPONS = "https://api.gearscape.net/api/weapon/all";
+	private static final String WIKI_BOSSES_CATEGORY = "https://oldschool.runescape.wiki/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:Bosses&cmnamespace=0&cmlimit=500";
 
 	private final HttpClient httpClient;
 	private final OsrsWikiApiClient wikiClient;
@@ -58,7 +60,9 @@ public class BossDataService
 		bossIndex.set(bosses);
 		gearItems.set(items);
 		loadedAt = Instant.now();
-		status = "Loaded " + bosses.size() + " bosses and " + items.size() + " equipment records from GearScape; wiki links use OSRS Wiki API.";
+		long gearscapeBosses = bosses.stream().filter(BossIndexEntry::hasGearscapeId).count();
+		long wikiOnlyBosses = bosses.size() - gearscapeBosses;
+		status = "Loaded " + bosses.size() + " boss autocomplete entries (" + gearscapeBosses + " GearScape + " + wikiOnlyBosses + " Wiki-only) and " + items.size() + " equipment records.";
 	}
 
 	public List<GearItem> getGearItems()
@@ -74,6 +78,17 @@ public class BossDataService
 	public List<String> getBossNameSuggestions(int limit)
 	{
 		return bossIndex.get().stream().map(BossIndexEntry::getName).distinct().limit(limit).collect(Collectors.toList());
+	}
+
+	public List<String> searchBossNameSuggestions(String query, int limit)
+	{
+		String normalized = normalize(query);
+		return bossIndex.get().stream()
+			.sorted(Comparator.comparingInt(entry -> matchScore(normalized, normalize(entry.getName()))))
+			.map(BossIndexEntry::getName)
+			.distinct()
+			.limit(limit)
+			.collect(Collectors.toList());
 	}
 
 	public BossTarget resolveBoss(String requestedBossName, BossProfile fallbackProfile)
@@ -92,6 +107,23 @@ public class BossDataService
 				Collections.emptyList(), OsrsWikiApiClient.pageUrl(requested), "OSRS Wiki fallback; GearScape boss index not loaded/matched");
 		}
 		BossIndexEntry entry = match.get();
+		if (!entry.hasGearscapeId())
+		{
+			String wikiUrl = OsrsWikiApiClient.pageUrl(entry.getName());
+			try
+			{
+				wikiUrl = wikiClient.findPage(entry.getName()).getUrl();
+			}
+			catch (IOException | InterruptedException | RuntimeException ignored)
+			{
+				if (ignored instanceof InterruptedException)
+				{
+					Thread.currentThread().interrupt();
+				}
+			}
+			return new BossTarget(entry.getName(), -1, entry.getCombatLevel(), 60, 60, 60, 60, 60, 100,
+				0, 0, 0, 0, 0, entry.getAttributes(), wikiUrl, "OSRS Wiki Category:Bosses autocomplete entry; GearScape stats unavailable");
+		}
 		try
 		{
 			return fetchBossDetails(entry);
@@ -112,7 +144,13 @@ public class BossDataService
 	{
 		String normalized = normalize(query);
 		return bossIndex.get().stream()
-			.min(Comparator.comparingInt(entry -> matchScore(normalized, normalize(entry.getName()))));
+			.min(Comparator.comparingInt(entry -> weightedMatchScore(normalized, entry)));
+	}
+
+	private static int weightedMatchScore(String query, BossIndexEntry entry)
+	{
+		int baseScore = matchScore(query, normalize(entry.getName()));
+		return entry.hasGearscapeId() ? baseScore : baseScore + 50;
 	}
 
 	private static int matchScore(String query, String candidate)
@@ -179,8 +217,8 @@ public class BossDataService
 
 	private List<BossIndexEntry> fetchBossIndex() throws IOException, InterruptedException
 	{
+		Map<String, BossIndexEntry> merged = new HashMap<>();
 		JsonArray monsters = getJson(GEARSCAPE_MONSTERS).getAsJsonArray("monsters");
-		List<BossIndexEntry> bosses = new ArrayList<>();
 		for (JsonElement element : monsters)
 		{
 			JsonObject obj = element.getAsJsonObject();
@@ -188,10 +226,50 @@ public class BossDataService
 			{
 				continue;
 			}
-			bosses.add(new BossIndexEntry(intValue(obj, "id", -1), stringValue(obj, "name", "Unknown boss"),
-				intValue(obj, "level_cb", 1), stringList(obj, "attributes")));
+			BossIndexEntry entry = new BossIndexEntry(intValue(obj, "id", -1), stringValue(obj, "name", "Unknown boss"),
+				intValue(obj, "level_cb", 1), stringList(obj, "attributes"));
+			merged.put(normalize(entry.getName()), entry);
 		}
-		return bosses.stream().sorted(Comparator.comparing(BossIndexEntry::getName)).collect(Collectors.toList());
+
+		for (String wikiBossName : fetchWikiBossNames())
+		{
+			String normalized = normalize(wikiBossName);
+			merged.putIfAbsent(normalized, new BossIndexEntry(-1, wikiBossName, 85, Arrays.asList("boss", "wiki")));
+		}
+
+		return merged.values().stream().sorted(Comparator.comparing(BossIndexEntry::getName)).collect(Collectors.toList());
+	}
+
+	private List<String> fetchWikiBossNames() throws IOException, InterruptedException
+	{
+		List<String> names = new ArrayList<>();
+		String next = WIKI_BOSSES_CATEGORY;
+		while (next != null)
+		{
+			JsonObject root = getJson(next);
+			JsonObject query = root.getAsJsonObject("query");
+			if (query != null && query.has("categorymembers"))
+			{
+				for (JsonElement element : query.getAsJsonArray("categorymembers"))
+				{
+					String title = stringValue(element.getAsJsonObject(), "title", "");
+					if (!title.isEmpty() && !"Boss".equalsIgnoreCase(title))
+					{
+						names.add(title);
+					}
+				}
+			}
+			JsonObject cont = root.getAsJsonObject("continue");
+			if (cont != null && cont.has("cmcontinue"))
+			{
+				next = WIKI_BOSSES_CATEGORY + "&cmcontinue=" + URLEncoder.encode(cont.get("cmcontinue").getAsString(), java.nio.charset.StandardCharsets.UTF_8);
+			}
+			else
+			{
+				next = null;
+			}
+		}
+		return names;
 	}
 
 	private List<GearItem> fetchGearItems() throws IOException, InterruptedException
@@ -392,6 +470,7 @@ public class BossDataService
 			this.attributes = Collections.unmodifiableList(new ArrayList<>(attributes));
 		}
 		int getId() { return id; }
+		boolean hasGearscapeId() { return id >= 0; }
 		String getName() { return name; }
 		int getCombatLevel() { return combatLevel; }
 		List<String> getAttributes() { return attributes; }

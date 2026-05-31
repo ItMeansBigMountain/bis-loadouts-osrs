@@ -5,17 +5,32 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import net.runelite.client.ui.PluginPanel;
 
 public class BossReadinessScorePanel extends PluginPanel
 {
 	private final JPanel content = new JPanel();
+	private final JComboBox<String> bossSelector = new JComboBox<>();
+	private final DefaultComboBoxModel<String> bossModel = new DefaultComboBoxModel<>();
+	private final List<String> allBossSuggestions = new ArrayList<>();
+	private Consumer<String> bossSelectionListener;
+	private boolean updatingBossSelector;
 
 	public BossReadinessScorePanel()
 	{
@@ -23,6 +38,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		setLayout(new BorderLayout());
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		configureBossSelector();
 		JScrollPane scrollPane = new JScrollPane(content);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		add(scrollPane, BorderLayout.CENTER);
@@ -36,6 +52,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	public void updateRecommendation(SetupRecommendation recommendation, BossTarget target, String dataStatus, java.util.List<String> suggestions)
 	{
 		content.removeAll();
+		addBossSelector(recommendation.getBossName(), suggestions);
 		addTitle(recommendation.getBossName() + " readiness");
 		if (target != null)
 		{
@@ -93,10 +110,119 @@ public class BossReadinessScorePanel extends PluginPanel
 	public void showWaitingForLogin()
 	{
 		content.removeAll();
+		addBossSelector("", allBossSuggestions);
 		addTitle("Boss Readiness Score");
-		addMuted("Log in, then pick a boss/style/budget in plugin config. This panel will show recommended gear by slot.");
+		addMuted("Log in, then type/select a boss in the live autocomplete, then pick style/budget in plugin config.");
 		content.revalidate();
 		content.repaint();
+	}
+
+
+	public void setBossSelectionListener(Consumer<String> bossSelectionListener)
+	{
+		this.bossSelectionListener = bossSelectionListener;
+	}
+
+	private void configureBossSelector()
+	{
+		bossSelector.setEditable(true);
+		bossSelector.setModel(bossModel);
+		bossSelector.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+		bossSelector.addActionListener(event -> {
+			if (updatingBossSelector || bossSelectionListener == null)
+			{
+				return;
+			}
+			Object selected = bossSelector.getEditor().getItem();
+			String bossName = selected == null ? "" : selected.toString().trim();
+			if (!bossName.isEmpty())
+			{
+				bossSelectionListener.accept(bossName);
+			}
+		});
+
+		if (bossSelector.getEditor().getEditorComponent() instanceof JTextField)
+		{
+			JTextField editor = (JTextField) bossSelector.getEditor().getEditorComponent();
+			editor.getDocument().addDocumentListener(new DocumentListener()
+			{
+				@Override
+				public void insertUpdate(DocumentEvent event)
+				{
+					filterLater(editor.getText());
+				}
+
+				@Override
+				public void removeUpdate(DocumentEvent event)
+				{
+					filterLater(editor.getText());
+				}
+
+				@Override
+				public void changedUpdate(DocumentEvent event)
+				{
+					filterLater(editor.getText());
+				}
+			});
+		}
+	}
+
+	private void filterLater(String query)
+	{
+		if (updatingBossSelector)
+		{
+			return;
+		}
+		SwingUtilities.invokeLater(() -> filterBossOptions(query, true));
+	}
+
+	private void addBossSelector(String selectedBoss, java.util.List<String> suggestions)
+	{
+		allBossSuggestions.clear();
+		if (suggestions != null)
+		{
+			allBossSuggestions.addAll(suggestions);
+		}
+		addTitle("Boss search");
+		filterBossOptions(selectedBoss == null ? "" : selectedBoss, false);
+		bossSelector.setAlignmentX(Component.LEFT_ALIGNMENT);
+		content.add(bossSelector);
+		addMuted("Type to filter live OSRS Wiki + GearScape boss names; press Enter or pick a dropdown result to load it.");
+	}
+
+	private void filterBossOptions(String query, boolean showPopup)
+	{
+		String text = query == null ? "" : query;
+		String normalized = text.toLowerCase(Locale.ROOT).trim();
+		updatingBossSelector = true;
+		bossModel.removeAllElements();
+		if (!text.trim().isEmpty())
+		{
+			bossModel.addElement(text);
+		}
+		int added = 0;
+		for (String suggestion : allBossSuggestions)
+		{
+			if (suggestion == null || suggestion.equals(text))
+			{
+				continue;
+			}
+			if (normalized.isEmpty() || suggestion.toLowerCase(Locale.ROOT).contains(normalized))
+			{
+				bossModel.addElement(suggestion);
+				added++;
+			}
+			if (added >= 30)
+			{
+				break;
+			}
+		}
+		bossSelector.getEditor().setItem(text);
+		updatingBossSelector = false;
+		if (showPopup && bossSelector.isShowing() && bossModel.getSize() > 0)
+		{
+			bossSelector.showPopup();
+		}
 	}
 
 	private void addTitle(String text)

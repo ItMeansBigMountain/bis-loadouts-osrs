@@ -9,7 +9,7 @@ The score and gear engine are intentionally lightweight for the first testable r
 - Login chat summary for the configured boss/PvM profile.
 - RuneLite side panel with readiness score, selected combat style, estimated DPS, hit chance, max hit, warnings, and gear by slot.
 - Boss dropdown: General PvM, Scurrius, Giant Mole, Barrows, Vorkath, Zulrah, and Fight Caves as offline fallbacks.
-- Free-text `Boss Name` lookup for any OSRS boss in the live GearScape boss index, with OSRS Wiki page links resolved through the public Wiki API.
+- Free-text `Boss Name` lookup and a side-panel autocomplete selector backed by both GearScape's boss index and the OSRS Wiki `Category:Bosses` list, with OSRS Wiki page links resolved through the public Wiki API.
 - Combat style dropdown with Auto, stab, slash, crush, ranged, and magic.
 - Budget tiers: Budget, Midgame, Rich, and No limit.
 - Live equipment/weapon stat loading from GearScape with local fallback gear if the network source is unavailable.

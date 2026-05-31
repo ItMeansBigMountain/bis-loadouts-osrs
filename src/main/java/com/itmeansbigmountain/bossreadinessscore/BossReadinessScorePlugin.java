@@ -41,6 +41,9 @@ public class BossReadinessScorePlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
+	@Inject
+	private ConfigManager configManager;
+
 	private final BossDataService bossDataService = new BossDataService();
 	private ExecutorService apiExecutor;
 	private BossReadinessScorePanel panel;
@@ -52,6 +55,7 @@ public class BossReadinessScorePlugin extends Plugin
 		log.debug("Boss Readiness Score started");
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
+		panel.setBossSelectionListener(this::selectBossNameFromPanel);
 		panel.showWaitingForLogin();
 		navButton = NavigationButton.builder()
 			.tooltip("Boss Readiness Score")
@@ -191,10 +195,26 @@ public class BossReadinessScorePlugin extends Plugin
 			SwingUtilities.invokeLater(() -> {
 				if (panel != null)
 				{
-					panel.updateRecommendation(recommendation, target, status, bossDataService.getBossNameSuggestions(8));
+					panel.updateRecommendation(recommendation, target, status, bossDataService.getBossNameSuggestions(1000));
 				}
 			});
 		});
+	}
+
+	private void selectBossNameFromPanel(String bossName)
+	{
+		if (bossName == null || bossName.trim().isEmpty())
+		{
+			return;
+		}
+		String trimmed = bossName.trim();
+		String current = config.bossName() == null ? "" : config.bossName().trim();
+		if (trimmed.equals(current))
+		{
+			return;
+		}
+		configManager.setConfiguration("bossreadinessscore", "bossName", trimmed);
+		refreshPanel();
 	}
 
 	private static BufferedImage createIcon()
