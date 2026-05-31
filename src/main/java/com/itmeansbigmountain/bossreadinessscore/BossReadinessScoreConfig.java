@@ -11,12 +11,34 @@ public interface BossReadinessScoreConfig extends Config
 	@ConfigItem(
 		keyName = "bossProfile",
 		name = "Boss Profile",
-		description = "Label for the boss or PvM activity you are checking readiness for",
+		description = "Boss or PvM activity to score and recommend gear for",
 		position = 0
 	)
-	default String bossProfile()
+	default BossProfile bossProfile()
 	{
-		return "General PvM";
+		return BossProfile.GENERAL_PVM;
+	}
+
+	@ConfigItem(
+		keyName = "combatStyle",
+		name = "Combat Style",
+		description = "Combat style to recommend gear for. Auto compares supported styles.",
+		position = 1
+	)
+	default CombatStyle combatStyle()
+	{
+		return CombatStyle.AUTO;
+	}
+
+	@ConfigItem(
+		keyName = "budgetTier",
+		name = "Budget Tier",
+		description = "Filters recommendations to practical item price tiers.",
+		position = 2
+	)
+	default BudgetTier budgetTier()
+	{
+		return BudgetTier.MIDGAME;
 	}
 
 	@Range(min = 1, max = 126)
@@ -24,7 +46,7 @@ public interface BossReadinessScoreConfig extends Config
 		keyName = "targetCombatLevel",
 		name = "Target Combat Level",
 		description = "Combat level considered fully ready for the selected boss profile",
-		position = 1
+		position = 3
 	)
 	default int targetCombatLevel()
 	{
@@ -36,7 +58,7 @@ public interface BossReadinessScoreConfig extends Config
 		keyName = "targetPrayerLevel",
 		name = "Target Prayer Level",
 		description = "Prayer level considered fully ready for the selected boss profile",
-		position = 2
+		position = 4
 	)
 	default int targetPrayerLevel()
 	{
@@ -48,7 +70,7 @@ public interface BossReadinessScoreConfig extends Config
 		keyName = "warningThreshold",
 		name = "Warning Threshold",
 		description = "Show a caution message when the readiness score is below this value",
-		position = 3
+		position = 5
 	)
 	default int warningThreshold()
 	{
@@ -59,7 +81,7 @@ public interface BossReadinessScoreConfig extends Config
 		keyName = "showLoginSummary",
 		name = "Show Login Summary",
 		description = "Print the readiness score to chat after login",
-		position = 4
+		position = 6
 	)
 	default boolean showLoginSummary()
 	{

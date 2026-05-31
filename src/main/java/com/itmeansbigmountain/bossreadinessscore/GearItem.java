@@ -1,0 +1,124 @@
+package com.itmeansbigmountain.bossreadinessscore;
+
+import java.util.EnumSet;
+import java.util.Set;
+
+public class GearItem
+{
+	private final GearSlot slot;
+	private final String name;
+	private final Set<CombatStyle> styles;
+	private final int attackReq;
+	private final int strengthReq;
+	private final int defenceReq;
+	private final int magicReq;
+	private final int rangedReq;
+	private final int prayerReq;
+	private final int attackBonus;
+	private final int strengthBonus;
+	private final long price;
+	private final String note;
+
+	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
+	{
+		this.slot = slot;
+		this.name = name;
+		this.styles = EnumSet.copyOf(styles);
+		this.attackReq = attackReq;
+		this.strengthReq = strengthReq;
+		this.defenceReq = defenceReq;
+		this.magicReq = magicReq;
+		this.rangedReq = rangedReq;
+		this.prayerReq = prayerReq;
+		this.attackBonus = attackBonus;
+		this.strengthBonus = strengthBonus;
+		this.price = price;
+		this.note = note;
+	}
+
+	public GearSlot getSlot()
+	{
+		return slot;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public Set<CombatStyle> getStyles()
+	{
+		return styles;
+	}
+
+	public int getAttackReq()
+	{
+		return attackReq;
+	}
+
+	public int getStrengthReq()
+	{
+		return strengthReq;
+	}
+
+	public int getDefenceReq()
+	{
+		return defenceReq;
+	}
+
+	public int getMagicReq()
+	{
+		return magicReq;
+	}
+
+	public int getRangedReq()
+	{
+		return rangedReq;
+	}
+
+	public int getPrayerReq()
+	{
+		return prayerReq;
+	}
+
+	public int getAttackBonus()
+	{
+		return attackBonus;
+	}
+
+	public int getStrengthBonus()
+	{
+		return strengthBonus;
+	}
+
+	public long getPrice()
+	{
+		return price;
+	}
+
+	public String getNote()
+	{
+		return note;
+	}
+
+	public boolean supports(CombatStyle style)
+	{
+		return styles.contains(style);
+	}
+
+	public boolean meetsRequirements(PlayerStats stats)
+	{
+		return stats.getAttack() >= attackReq
+			&& stats.getStrength() >= strengthReq
+			&& stats.getDefence() >= defenceReq
+			&& stats.getMagic() >= magicReq
+			&& stats.getRanged() >= rangedReq
+			&& stats.getPrayer() >= prayerReq;
+	}
+
+	public int scoreValue()
+	{
+		return attackBonus + strengthBonus * 2;
+	}
+}

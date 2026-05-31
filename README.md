@@ -1,16 +1,17 @@
 # Boss Readiness Score
 
-Boss Readiness Score is a RuneLite external plugin that gives a quick, in-client readiness estimate before bossing. On login, it reads the local player's combat level plus Hitpoints, Prayer, and Defence levels, compares them to configurable targets, and prints a 0-100 readiness score to the game chat.
+Boss Readiness Score is a RuneLite external plugin that gives a quick, in-client readiness estimate before bossing. On login, it reads the local player's combat stats, compares them to the selected boss profile, and opens a RuneLite side panel with a 0-100 readiness score plus GearScape-inspired best-available gear recommendations by slot.
 
-The score is intentionally lightweight: it is a pre-fight sanity check, not a replacement for boss-specific gear, supplies, quest, diary, or mechanic knowledge.
+The score and gear engine are intentionally lightweight for the first testable release: it is a practical pre-fight sanity check with boss/style/budget-aware recommendations, not a full exact DPS simulator yet.
 
 ## Features
 
 - Login chat summary for the configured boss/PvM profile.
-- Configurable boss profile label.
-- Configurable target combat level and Prayer level.
-- Configurable warning threshold for caution messaging.
-- Pure scoring helper methods covered by unit tests, so the score behavior can be checked without launching a live RuneLite client.
+- RuneLite side panel with readiness score, selected combat style, estimated DPS, hit chance, max hit, warnings, and gear by slot.
+- Boss dropdown: General PvM, Scurrius, Giant Mole, Barrows, Vorkath, Zulrah, and Fight Caves.
+- Combat style dropdown with Auto, stab, slash, crush, ranged, and magic.
+- Budget tiers: Budget, Midgame, Rich, and No limit.
+- Gear recommendation helper methods covered by unit tests, so the scoring/recommendation behavior can be checked without launching a live RuneLite client.
 
 ## Scoring model
 
@@ -27,15 +28,17 @@ Scores are capped at 100. If the score is below the configured warning threshold
 
 Open RuneLite's plugin configuration for `Boss Readiness Score`:
 
-- `Boss Profile`: free-text label shown in the chat message, e.g. `Vorkath`, `Zulrah`, or `General PvM`.
-- `Target Combat Level`: combat level treated as fully ready for the selected profile.
-- `Target Prayer Level`: Prayer level treated as fully ready for the selected profile.
+- `Boss Profile`: boss/activity profile used for readiness targets and recommendations.
+- `Combat Style`: `Auto` compares available styles; otherwise forces stab/slash/crush/ranged/magic recommendations.
+- `Budget Tier`: filters expensive gear for Budget, Midgame, Rich, or No-limit recommendations.
+- `Target Combat Level`: combat level treated as fully ready for the selected profile's login summary.
+- `Target Prayer Level`: Prayer level treated as fully ready for the selected profile's login summary.
 - `Warning Threshold`: readiness score below this value shows a caution message.
 - `Show Login Summary`: enables/disables the login chat message.
 
 ## API usage and privacy
 
-This plugin does not call external APIs. It uses RuneLite client state for local player combat/skill levels only.
+This plugin does not call external APIs at runtime. The current testable release ships a small local recommendation dataset and pure Java calculator inspired by the GearScape research notes. Future releases can swap this dataset for generated OSRS Wiki/RuneLite data while keeping the same panel and tests.
 
 ## Local development
 
@@ -67,10 +70,12 @@ JAVA_HOME=/opt/data/jdks/current-java11 ./gradlew run --no-daemon
 Before plugin-hub prep, manually verify in a RuneLite developer-mode session:
 
 1. The plugin appears as `Boss Readiness Score` in the plugin list.
-2. The configuration panel shows all settings with clear labels.
-3. Logging into a world prints exactly one readable game-message summary when `Show Login Summary` is enabled.
-4. Lowering `Warning Threshold` changes the message from caution to ready as expected.
-5. Disabling `Show Login Summary` suppresses the login chat message.
+2. The configuration panel shows boss, combat style, budget, thresholds, and login-summary settings with clear labels.
+3. The right-side navigation button opens a panel with readiness score, gear slots, warnings, and alternative style DPS.
+4. Logging into a world prints exactly one readable game-message summary when `Show Login Summary` is enabled.
+5. Changing boss/style/budget while logged in refreshes the panel.
+6. Lowering `Warning Threshold` changes the message from caution to ready as expected.
+7. Disabling `Show Login Summary` suppresses the login chat message while the side panel still works.
 
 ## Plugin-hub prep notes
 

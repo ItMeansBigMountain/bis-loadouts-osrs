@@ -1,6 +1,9 @@
 package com.itmeansbigmountain.bossreadinessscore;
 
 import com.google.inject.Provides;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
@@ -10,8 +13,11 @@ import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 
 @PluginDescriptor(
 	name = "Boss Readiness Score",
@@ -29,22 +35,50 @@ public class BossReadinessScorePlugin extends Plugin
 	@Inject
 	private BossReadinessScoreConfig config;
 
+	@Inject
+	private ClientToolbar clientToolbar;
+
+	private BossReadinessScorePanel panel;
+	private NavigationButton navButton;
+
 	@Override
 	protected void startUp()
 	{
 		log.debug("Boss Readiness Score started");
+		panel = new BossReadinessScorePanel();
+		panel.showWaitingForLogin();
+		navButton = NavigationButton.builder()
+			.tooltip("Boss Readiness Score")
+			.icon(createIcon())
+			.priority(5)
+			.panel(panel)
+			.build();
+		clientToolbar.addNavigation(navButton);
+		refreshPanel();
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		log.debug("Boss Readiness Score stopped");
+		if (navButton != null)
+		{
+			clientToolbar.removeNavigation(navButton);
+		}
+		panel = null;
+		navButton = null;
 	}
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		if (gameStateChanged.getGameState() != GameState.LOGGED_IN || !config.showLoginSummary())
+		if (gameStateChanged.getGameState() != GameState.LOGGED_IN)
+		{
+			return;
+		}
+
+		refreshPanel();
+		if (!config.showLoginSummary())
 		{
 			return;
 		}
@@ -56,7 +90,16 @@ public class BossReadinessScorePlugin extends Plugin
 		int score = calculateReadinessScore(combatLevel, hitpoints, prayer, defence,
 			config.targetCombatLevel(), config.targetPrayerLevel());
 
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", buildSummaryMessage(config.bossProfile(), score, config.warningThreshold()), null);
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", buildSummaryMessage(config.bossProfile().getLabel(), score, config.warningThreshold()), null);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if ("bossreadinessscore".equals(event.getGroup()))
+		{
+			refreshPanel();
+		}
 	}
 
 	static int calculateReadinessScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
@@ -88,6 +131,41 @@ public class BossReadinessScorePlugin extends Plugin
 	private static int clampScore(int score)
 	{
 		return Math.max(0, Math.min(MAX_SCORE, score));
+	}
+
+	private void refreshPanel()
+	{
+		if (panel == null)
+		{
+			return;
+		}
+		if (client.getGameState() != GameState.LOGGED_IN)
+		{
+			panel.showWaitingForLogin();
+			return;
+		}
+		PlayerStats stats = new PlayerStats(
+			client.getRealSkillLevel(Skill.ATTACK),
+			client.getRealSkillLevel(Skill.STRENGTH),
+			client.getRealSkillLevel(Skill.DEFENCE),
+			client.getRealSkillLevel(Skill.HITPOINTS),
+			client.getRealSkillLevel(Skill.MAGIC),
+			client.getRealSkillLevel(Skill.RANGED),
+			client.getRealSkillLevel(Skill.PRAYER)
+		);
+		panel.updateRecommendation(GearRecommendationEngine.recommend(config.bossProfile(), config.combatStyle(), config.budgetTier(), stats));
+	}
+
+	private static BufferedImage createIcon()
+	{
+		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D graphics = image.createGraphics();
+		graphics.setColor(new Color(33, 150, 243));
+		graphics.fillOval(1, 1, 14, 14);
+		graphics.setColor(Color.WHITE);
+		graphics.drawString("B", 4, 12);
+		graphics.dispose();
+		return image;
 	}
 
 	@Provides
