@@ -30,8 +30,25 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	public void updateRecommendation(SetupRecommendation recommendation)
 	{
+		updateRecommendation(recommendation, null, "Using local fallback data.", java.util.Collections.emptyList());
+	}
+
+	public void updateRecommendation(SetupRecommendation recommendation, BossTarget target, String dataStatus, java.util.List<String> suggestions)
+	{
 		content.removeAll();
 		addTitle(recommendation.getBossName() + " readiness");
+		if (target != null)
+		{
+			addLine("Data source", target.getSource());
+			if (target.getWikiUrl() != null && !target.getWikiUrl().isEmpty())
+			{
+				addLine("Wiki", target.getWikiUrl());
+			}
+		}
+		if (dataStatus != null && !dataStatus.isEmpty())
+		{
+			addMuted(dataStatus);
+		}
 		addLine("Style", recommendation.getStyle().toString());
 		addLine("Readiness", recommendation.getReadinessScore() + "/100");
 		addLine("Est. DPS", String.format("%.2f", recommendation.getEstimatedDps()));
@@ -62,6 +79,12 @@ public class BossReadinessScorePanel extends PluginPanel
 			{
 				addLine(alt.getStyle().toString(), String.format("%.2f DPS", alt.getEstimatedDps()));
 			}
+		}
+		if (suggestions != null && !suggestions.isEmpty())
+		{
+			addSpacer();
+			addTitle("Live boss search examples");
+			addMuted(String.join(", ", suggestions));
 		}
 		content.revalidate();
 		content.repaint();

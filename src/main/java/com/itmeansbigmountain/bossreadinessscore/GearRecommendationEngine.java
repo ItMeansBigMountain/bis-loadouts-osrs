@@ -21,12 +21,18 @@ public final class GearRecommendationEngine
 
 	public static SetupRecommendation recommend(BossProfile boss, CombatStyle requestedStyle, BudgetTier budget, PlayerStats stats)
 	{
+		return recommend(BossTarget.fromProfile(boss), requestedStyle, budget, stats, ITEMS);
+	}
+
+	public static SetupRecommendation recommend(BossTarget boss, CombatStyle requestedStyle, BudgetTier budget, PlayerStats stats, List<GearItem> liveItems)
+	{
+		List<GearItem> candidateItems = liveItems == null || liveItems.isEmpty() ? ITEMS : liveItems;
 		List<CombatStyle> styles = requestedStyle == CombatStyle.AUTO
 			? Arrays.asList(CombatStyle.MAGIC, CombatStyle.RANGED, CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH)
 			: Collections.singletonList(requestedStyle);
 
 		List<SetupRecommendation> scored = styles.stream()
-			.map(style -> recommendSingleStyle(boss, style, budget, stats))
+			.map(style -> recommendSingleStyle(boss, style, budget, stats, candidateItems))
 			.sorted(Comparator.comparingDouble(SetupRecommendation::getEstimatedDps).reversed())
 			.collect(Collectors.toList());
 
@@ -39,14 +45,14 @@ public final class GearRecommendationEngine
 			best.getHitChance(), best.getMaxHit(), best.getReadinessScore(), best.getWarnings(), alternatives);
 	}
 
-	private static SetupRecommendation recommendSingleStyle(BossProfile boss, CombatStyle style, BudgetTier budget, PlayerStats stats)
+	private static SetupRecommendation recommendSingleStyle(BossTarget boss, CombatStyle style, BudgetTier budget, PlayerStats stats, List<GearItem> items)
 	{
 		Map<GearSlot, GearItem> selected = new EnumMap<>(GearSlot.class);
 		List<String> warnings = new ArrayList<>();
 
 		for (GearSlot slot : GearSlot.values())
 		{
-			ITEMS.stream()
+			items.stream()
 				.filter(item -> item.getSlot() == slot)
 				.filter(item -> item.supports(style))
 				.filter(item -> item.getPrice() <= budget.getMaxItemPrice())
@@ -90,9 +96,9 @@ public final class GearRecommendationEngine
 		}
 	}
 
-	private static int calculateReadiness(BossProfile boss, CombatStyle style, PlayerStats stats, Map<GearSlot, GearItem> items, List<String> warnings)
+	private static int calculateReadiness(BossTarget boss, CombatStyle style, PlayerStats stats, Map<GearSlot, GearItem> items, List<String> warnings)
 	{
-		int core = BossReadinessScorePlugin.calculateReadinessScore(boss.getTargetCombat(), stats.getHitpoints(), stats.getPrayer(), stats.getDefence(), boss.getTargetCombat(), 43);
+		int core = basicReadinessScore(boss.getTargetCombat(), stats.getHitpoints(), stats.getPrayer(), stats.getDefence(), boss.getTargetCombat(), 43);
 		double styleRatio;
 		if (style == CombatStyle.MAGIC)
 		{
@@ -141,36 +147,49 @@ public final class GearRecommendationEngine
 		}
 	}
 
-	private static double targetPressure(BossProfile boss, CombatStyle style)
+	private static double targetPressure(BossTarget boss, CombatStyle style)
 	{
-		if (boss == BossProfile.ZULRAH && style == CombatStyle.MAGIC)
+		int defence;
+		switch (style)
 		{
-			return 0.05D;
+			case MAGIC:
+				defence = boss.getDefMagic();
+				break;
+			case RANGED:
+				defence = boss.getDefRanged();
+				break;
+			case STAB:
+				defence = boss.getDefStab();
+				break;
+			case SLASH:
+				defence = boss.getDefSlash();
+				break;
+			case CRUSH:
+			default:
+				defence = boss.getDefCrush();
+				break;
 		}
-		if (boss == BossProfile.ZULRAH && style == CombatStyle.RANGED)
-		{
-			return 0.12D;
-		}
-		if (boss == BossProfile.VORKATH && style == CombatStyle.RANGED)
-		{
-			return 0.04D;
-		}
-		return boss.ordinal() * 0.015D;
+		return clamp(defence / 700.0D, 0.0D, 0.45D);
 	}
 
-	private static double styleMultiplier(BossProfile boss, CombatStyle style)
+	private static double styleMultiplier(BossTarget boss, CombatStyle style)
 	{
-		if (boss == BossProfile.ZULRAH && style == CombatStyle.MAGIC)
+		String name = boss.getLabel().toLowerCase();
+		if (name.contains("zulrah") && style == CombatStyle.MAGIC)
 		{
 			return 1.45D;
 		}
-		if (boss == BossProfile.ZULRAH && style == CombatStyle.RANGED)
+		if (name.contains("zulrah") && style == CombatStyle.RANGED)
 		{
 			return 0.85D;
 		}
-		if (boss == BossProfile.VORKATH && style == CombatStyle.RANGED)
+		if (name.contains("vorkath") && style == CombatStyle.RANGED)
 		{
 			return 1.25D;
+		}
+		if (boss.getAttributes().contains("melee immune") && (style == CombatStyle.STAB || style == CombatStyle.SLASH || style == CombatStyle.CRUSH))
+		{
+			return 0.25D;
 		}
 		return 1.0D;
 	}
@@ -178,6 +197,21 @@ public final class GearRecommendationEngine
 	private static double clamp(double value, double min, double max)
 	{
 		return Math.max(min, Math.min(max, value));
+	}
+
+	private static int basicReadinessScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
+		int targetCombatLevel, int targetPrayerLevel)
+	{
+		double combatScore = ratioScore(combatLevel, Math.max(1, targetCombatLevel)) * 0.55D;
+		double hitpointsScore = ratioScore(hitpointsLevel, 99) * 0.20D;
+		double prayerScore = ratioScore(prayerLevel, Math.max(1, targetPrayerLevel)) * 0.15D;
+		double defenceScore = ratioScore(defenceLevel, 99) * 0.10D;
+		return Math.max(0, Math.min(100, (int) Math.round(combatScore + hitpointsScore + prayerScore + defenceScore)));
+	}
+
+	private static double ratioScore(int actual, int target)
+	{
+		return Math.min(1.0D, Math.max(0.0D, actual / (double) target)) * 100.0D;
 	}
 
 	private static double round(double value)

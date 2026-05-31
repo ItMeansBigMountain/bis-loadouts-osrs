@@ -8,9 +8,11 @@ The score and gear engine are intentionally lightweight for the first testable r
 
 - Login chat summary for the configured boss/PvM profile.
 - RuneLite side panel with readiness score, selected combat style, estimated DPS, hit chance, max hit, warnings, and gear by slot.
-- Boss dropdown: General PvM, Scurrius, Giant Mole, Barrows, Vorkath, Zulrah, and Fight Caves.
+- Boss dropdown: General PvM, Scurrius, Giant Mole, Barrows, Vorkath, Zulrah, and Fight Caves as offline fallbacks.
+- Free-text `Boss Name` lookup for any OSRS boss in the live GearScape boss index, with OSRS Wiki page links resolved through the public Wiki API.
 - Combat style dropdown with Auto, stab, slash, crush, ranged, and magic.
 - Budget tiers: Budget, Midgame, Rich, and No limit.
+- Live equipment/weapon stat loading from GearScape with local fallback gear if the network source is unavailable.
 - Gear recommendation helper methods covered by unit tests, so the scoring/recommendation behavior can be checked without launching a live RuneLite client.
 
 ## Scoring model
@@ -28,7 +30,8 @@ Scores are capped at 100. If the score is below the configured warning threshold
 
 Open RuneLite's plugin configuration for `Boss Readiness Score`:
 
-- `Boss Profile`: boss/activity profile used for readiness targets and recommendations.
+- `Boss Profile`: offline fallback profile used when `Boss Name` is blank or live data cannot be matched.
+- `Boss Name`: optional live lookup; type any boss name such as `Vorkath`, `The Leviathan`, `Zulrah`, or a new boss after the public data sources update.
 - `Combat Style`: `Auto` compares available styles; otherwise forces stab/slash/crush/ranged/magic recommendations.
 - `Budget Tier`: filters expensive gear for Budget, Midgame, Rich, or No-limit recommendations.
 - `Target Combat Level`: combat level treated as fully ready for the selected profile's login summary.
@@ -38,7 +41,15 @@ Open RuneLite's plugin configuration for `Boss Readiness Score`:
 
 ## API usage and privacy
 
-This plugin does not call external APIs at runtime. The current testable release ships a small local recommendation dataset and pure Java calculator inspired by the GearScape research notes. Future releases can swap this dataset for generated OSRS Wiki/RuneLite data while keeping the same panel and tests.
+No API key is required for the public OSRS Wiki API calls currently used by this plugin. The plugin uses a descriptive User-Agent and read-only public endpoints.
+
+Runtime data flow:
+
+- OSRS Wiki MediaWiki API resolves canonical boss pages/links for the side panel.
+- GearScape's public monster/equipment/weapon endpoints provide machine-readable boss and item stats for dynamic recommendations.
+- Local fallback presets remain available if either service is offline.
+
+The live data integration is documented in [`docs/wiki-gearscape-integration.md`](docs/wiki-gearscape-integration.md).
 
 ## Local development
 

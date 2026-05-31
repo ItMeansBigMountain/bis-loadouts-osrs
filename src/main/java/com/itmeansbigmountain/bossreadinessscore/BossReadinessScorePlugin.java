@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
@@ -38,6 +41,8 @@ public class BossReadinessScorePlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
+	private final BossDataService bossDataService = new BossDataService();
+	private ExecutorService apiExecutor;
 	private BossReadinessScorePanel panel;
 	private NavigationButton navButton;
 
@@ -45,6 +50,7 @@ public class BossReadinessScorePlugin extends Plugin
 	protected void startUp()
 	{
 		log.debug("Boss Readiness Score started");
+		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
 		panel.showWaitingForLogin();
 		navButton = NavigationButton.builder()
@@ -54,6 +60,17 @@ public class BossReadinessScorePlugin extends Plugin
 			.panel(panel)
 			.build();
 		clientToolbar.addNavigation(navButton);
+		apiExecutor.submit(() -> {
+			try
+			{
+				bossDataService.refresh();
+			}
+			catch (Exception ex)
+			{
+				log.warn("Unable to refresh OSRS Wiki/GearScape data", ex);
+			}
+			refreshPanel();
+		});
 		refreshPanel();
 	}
 
@@ -64,6 +81,10 @@ public class BossReadinessScorePlugin extends Plugin
 		if (navButton != null)
 		{
 			clientToolbar.removeNavigation(navButton);
+		}
+		if (apiExecutor != null)
+		{
+			apiExecutor.shutdownNow();
 		}
 		panel = null;
 		navButton = null;
@@ -90,7 +111,8 @@ public class BossReadinessScorePlugin extends Plugin
 		int score = calculateReadinessScore(combatLevel, hitpoints, prayer, defence,
 			config.targetCombatLevel(), config.targetPrayerLevel());
 
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", buildSummaryMessage(config.bossProfile().getLabel(), score, config.warningThreshold()), null);
+		String bossName = config.bossName() == null || config.bossName().trim().isEmpty() ? config.bossProfile().getLabel() : config.bossName().trim();
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", buildSummaryMessage(bossName, score, config.warningThreshold()), null);
 	}
 
 	@Subscribe
@@ -141,7 +163,12 @@ public class BossReadinessScorePlugin extends Plugin
 		}
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
-			panel.showWaitingForLogin();
+			SwingUtilities.invokeLater(() -> {
+				if (panel != null)
+				{
+					panel.showWaitingForLogin();
+				}
+			});
 			return;
 		}
 		PlayerStats stats = new PlayerStats(
@@ -153,7 +180,21 @@ public class BossReadinessScorePlugin extends Plugin
 			client.getRealSkillLevel(Skill.RANGED),
 			client.getRealSkillLevel(Skill.PRAYER)
 		);
-		panel.updateRecommendation(GearRecommendationEngine.recommend(config.bossProfile(), config.combatStyle(), config.budgetTier(), stats));
+		String requestedBossName = config.bossName();
+		BossProfile fallbackProfile = config.bossProfile();
+		CombatStyle style = config.combatStyle();
+		BudgetTier budget = config.budgetTier();
+		apiExecutor.submit(() -> {
+			BossTarget target = bossDataService.resolveBoss(requestedBossName, fallbackProfile);
+			SetupRecommendation recommendation = GearRecommendationEngine.recommend(target, style, budget, stats, bossDataService.getGearItems());
+			String status = bossDataService.getStatus();
+			SwingUtilities.invokeLater(() -> {
+				if (panel != null)
+				{
+					panel.updateRecommendation(recommendation, target, status, bossDataService.getBossNameSuggestions(8));
+				}
+			});
+		});
 	}
 
 	private static BufferedImage createIcon()
