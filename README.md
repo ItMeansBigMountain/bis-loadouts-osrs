@@ -78,3 +78,14 @@ Before plugin-hub prep, manually verify in a RuneLite developer-mode session:
 - Source package is `com.itmeansbigmountain.bossreadinessscore`.
 - The Gradle `run` task uses `BossReadinessScorePluginTest` as the developer-mode launcher.
 - No screenshots are included yet; add one during manual RuneLite testing if the plugin-hub submission needs visual evidence.
+
+## Product direction update
+
+Boss Readiness Score should include best-in-slot / best-available gear recommendations, inspired by GearScape but easier to use inside RuneLite.
+
+Target UX:
+
+- User selects a boss/PvM target and optionally budget, owned/unowned item exclusions, combat style, and risk level.
+- Panel shows readiness score plus gear recommendations by slot, prayer/supply notes, missing prerequisites, and simpler upgrade priorities.
+- Use OSRS Wiki-derived item/monster data where possible; GearScape is inspiration for preference-based setup selection and DPS-style comparison, not a private API dependency.
+- Present beginner-friendly defaults before advanced calculator details.
