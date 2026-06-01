@@ -98,6 +98,7 @@ public final class GearRecommendationEngine
 			|| normalized.contains("trailblazer")
 			|| normalized.contains("twisted league")
 			|| normalized.contains("shattered relics")
+			|| normalized.contains("raging echoes")
 			|| normalized.contains("relic hunter")
 			|| normalized.contains("trophy")
 			|| normalized.contains("competitive")
@@ -333,7 +334,8 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.WEAPON, "trident of the seas", magic, 0, 0, 0, 75, 0, 0, 25, 10, 45_000, "Baseline powered staff."));
 		items.add(item(GearSlot.WEAPON, "trident of the swamp", magic, 0, 0, 0, 75, 0, 0, 32, 16, 2_500_000, "Strong practical Zulrah staff."));
 		items.add(item(GearSlot.WEAPON, "sanguinesti staff", magic, 0, 0, 0, 82, 0, 0, 40, 24, 85_000_000, "High-end sustain option."));
-		items.add(item(GearSlot.WEAPON, "eye of ayak", magic, 0, 0, 0, 90, 0, 0, 48, 30, 55_000_000, "GearScape-inspired high DPS option."));
+		items.add(item(GearSlot.WEAPON, "purging staff", magic, 50, 0, 0, 77, 0, 0, 37, 25, 37_000_000, "Current OSRS demonbane magic weapon from While Guthix Sleeps."));
+		items.add(item(GearSlot.WEAPON, "eye of ayak", magic, 0, 0, 0, 83, 0, 0, 48, 30, 55_000_000, "Current OSRS powered staff from Doom of Mokhaiotl."));
 		items.add(item(GearSlot.WEAPON, "tumeken's shadow", magic, 0, 0, 0, 85, 0, 0, 75, 60, 1_400_000_000, "Two-handed OSRS magic megarares weapon."));
 		items.add(item(GearSlot.HEAD, "mystic hat", magic, 0, 0, 20, 40, 0, 0, 4, 0, 25_000, "Budget magic."));
 		items.add(item(GearSlot.HEAD, "ahrim's hood", magic, 0, 0, 70, 70, 0, 0, 6, 1, 500_000, "Midgame magic."));
@@ -357,6 +359,8 @@ public final class GearRecommendationEngine
 		Set<CombatStyle> ranged = EnumSet.of(CombatStyle.RANGED);
 		items.add(item(GearSlot.WEAPON, "rune crossbow", ranged, 0, 0, 1, 0, 61, 0, 90, 60, 10_000, "Budget crossbow."));
 		items.add(item(GearSlot.WEAPON, "toxic blowpipe", ranged, 0, 0, 1, 0, 75, 0, 75, 70, 2_500_000, "Fast practical ranged."));
+		items.add(item(GearSlot.WEAPON, "scorching bow", ranged, 0, 0, 1, 0, 77, 0, 124, 40, 37_000_000, "Current OSRS demonbane two-handed bow from While Guthix Sleeps."));
+		items.add(item(GearSlot.WEAPON, "zaryte crossbow", ranged, 0, 0, 1, 0, 80, 0, 110, 80, 367_000_000, "Current high-end one-handed crossbow."));
 		items.add(item(GearSlot.WEAPON, "bow of faerdhinen", ranged, 0, 0, 70, 0, 80, 0, 128, 106, 130_000_000, "High-end bow."));
 		items.add(item(GearSlot.WEAPON, "twisted bow", ranged, 0, 0, 1, 0, 75, 0, 140, 120, 1_600_000_000, "Theoretical high-end ranged."));
 		items.add(item(GearSlot.HEAD, "black d'hide coif", ranged, 0, 0, 40, 0, 70, 0, 10, 0, 8_000, "Budget ranged."));
@@ -383,7 +387,9 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.WEAPON, "dragon scimitar", melee, 60, 60, 1, 0, 0, 0, 67, 66, 60_000, "Budget melee."));
 		items.add(item(GearSlot.WEAPON, "abyssal whip", melee, 70, 70, 1, 0, 0, 0, 82, 82, 1_700_000, "Midgame melee."));
 		items.add(item(GearSlot.WEAPON, "osmumten's fang", melee, 82, 75, 1, 0, 0, 0, 105, 103, 18_000_000, "Bossing melee option."));
+		items.add(item(GearSlot.WEAPON, "emberlight", melee, 77, 1, 1, 0, 0, 0, 70, 13, 37_000_000, "Current OSRS one-handed demonbane sword from While Guthix Sleeps."));
 		items.add(item(GearSlot.WEAPON, "noxious halberd", melee, 80, 80, 1, 0, 0, 0, 132, 142, 50_000_000, "High-end melee inspiration."));
+		items.add(item(GearSlot.WEAPON, "soulreaper axe", melee, 80, 80, 1, 0, 0, 0, 134, 121, 286_000_000, "Current OSRS two-handed axe from Desert Treasure II."));
 		items.add(item(GearSlot.WEAPON, "scythe of vitur", melee, 80, 90, 1, 0, 0, 0, 140, 148, 1_100_000_000, "Two-handed OSRS melee megarares weapon."));
 		items.add(item(GearSlot.HEAD, "helm of neitiznot", melee, 1, 1, 45, 0, 0, 0, 0, 3, 50_000, "Budget melee."));
 		items.add(item(GearSlot.HEAD, "neitiznot faceguard", melee, 1, 1, 70, 0, 0, 0, 0, 6, 20_000_000, "Strong melee helm."));
@@ -414,6 +420,7 @@ public final class GearRecommendationEngine
 			case "trident of the seas": return 11907;
 			case "trident of the swamp": return 12899;
 			case "sanguinesti staff": return 22323;
+			case "purging staff": return 29594;
 			case "tumeken's shadow": return 27275;
 			case "mystic hat": return 4089;
 			case "ahrim's hood": return 4708;
@@ -431,6 +438,8 @@ public final class GearRecommendationEngine
 			case "magus ring": return 28313;
 			case "rune crossbow": return 9185;
 			case "toxic blowpipe": return 12926;
+			case "scorching bow": return 29591;
+			case "zaryte crossbow": return 26374;
 			case "bow of faerdhinen": return 25862;
 			case "crystal helm": return 23971;
 			case "corrupted bow (perfected)": return 23857;
@@ -455,7 +464,9 @@ public final class GearRecommendationEngine
 			case "dragon scimitar": return 4587;
 			case "abyssal whip": return 4151;
 			case "osmumten's fang": return 26219;
+			case "emberlight": return 29589;
 			case "noxious halberd": return 29796;
+			case "soulreaper axe": return 28338;
 			case "scythe of vitur": return 22325;
 			case "helm of neitiznot": return 10828;
 			case "neitiznot faceguard": return 24271;

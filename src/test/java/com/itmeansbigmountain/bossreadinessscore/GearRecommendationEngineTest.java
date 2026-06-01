@@ -100,9 +100,27 @@ public class GearRecommendationEngineTest
 		assertEquals(28951, GearRecommendationEngine.fallbackItemId("dizana's quiver"));
 		assertEquals(27275, GearRecommendationEngine.fallbackItemId("Tumeken's shadow"));
 		assertEquals(20997, GearRecommendationEngine.fallbackItemId("Twisted bow"));
+		assertEquals(29591, GearRecommendationEngine.fallbackItemId("Scorching bow"));
+		assertEquals(29594, GearRecommendationEngine.fallbackItemId("Purging staff"));
+		assertEquals(29589, GearRecommendationEngine.fallbackItemId("Emberlight"));
+		assertEquals(26374, GearRecommendationEngine.fallbackItemId("Zaryte crossbow"));
+		assertEquals(28338, GearRecommendationEngine.fallbackItemId("Soulreaper axe"));
 		assertEquals(22325, GearRecommendationEngine.fallbackItemId("Scythe of vitur"));
 		assertEquals(26219, GearRecommendationEngine.fallbackItemId("Osmumten's fang"));
 		assertEquals(10828, GearRecommendationEngine.fallbackItemId("Helm of neitiznot"));
+	}
+
+	@Test
+	public void currentTwoHandedWeaponNamesSuppressShield()
+	{
+		java.util.Set<CombatStyle> ranged = java.util.EnumSet.of(CombatStyle.RANGED);
+		java.util.Set<CombatStyle> melee = java.util.EnumSet.of(CombatStyle.MELEE, CombatStyle.SLASH);
+
+		assertTrue(new GearItem(GearSlot.WEAPON, 29591, "scorching bow", ranged, 0, 0, 1, 0, 77, 0, 124, 40, 37_000_000, "wiki").isTwoHanded());
+		assertTrue(new GearItem(GearSlot.WEAPON, 28338, "soulreaper axe", melee, 80, 80, 1, 0, 0, 0, 134, 121, 286_000_000, "wiki").isTwoHanded());
+		assertTrue(new GearItem(GearSlot.WEAPON, 11802, "armadyl godsword", melee, 75, 75, 1, 0, 0, 0, 132, 132, 10_000_000, "wiki").isTwoHanded());
+		assertFalse(new GearItem(GearSlot.WEAPON, 26374, "zaryte crossbow", ranged, 0, 0, 1, 0, 80, 0, 110, 80, 367_000_000, "wiki").isTwoHanded());
+		assertFalse(new GearItem(GearSlot.WEAPON, 29594, "purging staff", java.util.EnumSet.of(CombatStyle.MAGIC), 50, 0, 0, 77, 0, 0, 37, 25, 37_000_000, "wiki").isTwoHanded());
 	}
 
 	@Test

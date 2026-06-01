@@ -165,11 +165,21 @@ public class GearItem
 			|| normalized.contains("twisted bow")
 			|| normalized.contains("bow of faerdhinen")
 			|| normalized.contains("toxic blowpipe")
+			|| normalized.contains("scorching bow")
 			|| normalized.contains("noxious halberd")
+			|| normalized.contains("soulreaper axe")
 			|| normalized.contains("scythe")
 			|| normalized.contains("halberd")
+			|| normalized.contains("godsword")
+			|| normalized.contains("maul")
+			|| normalized.contains("greataxe")
+			|| normalized.contains("2h sword")
+			|| normalized.contains("colossal blade")
+			|| normalized.contains("barrelchest anchor")
+			|| normalized.contains("spear")
 			|| normalized.contains("longbow")
-			|| normalized.contains("shortbow");
+			|| normalized.contains("shortbow")
+			|| ((normalized.endsWith(" bow") || normalized.endsWith("bow")) && !normalized.contains("crossbow"));
 	}
 
 	public boolean supports(CombatStyle style)
