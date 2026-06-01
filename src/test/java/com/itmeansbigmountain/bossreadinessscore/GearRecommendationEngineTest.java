@@ -125,15 +125,31 @@ public class GearRecommendationEngineTest
 	public void localOsrsItemsFillGapsWhenLiveApiIsStale()
 	{
 		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
-		java.util.List<GearItem> staleLiveItems = java.util.Collections.singletonList(
+		java.util.List<GearItem> staleLiveItems = java.util.Arrays.asList(
 			new GearItem(GearSlot.WEAPON, 11907, "trident of the seas", java.util.EnumSet.of(CombatStyle.MAGIC),
-				0, 0, 0, 75, 0, 0, 25, 10, 45_000, "stale live api")
+				0, 0, 0, 75, 0, 0, 25, 10, 45_000, "stale live api"),
+			new GearItem(GearSlot.WEAPON, 23857, "corrupted bow (perfected)", java.util.EnumSet.of(CombatStyle.RANGED),
+				0, 0, 0, 0, 80, 0, 999, 999, 0, "temporary gauntlet item")
 		);
 
-		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+		SetupRecommendation magic = GearRecommendationEngine.recommend(
 			BossTarget.fromProfile(BossProfile.GENERAL_PVM), CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats, staleLiveItems);
+		SetupRecommendation ranged = GearRecommendationEngine.recommend(
+			BossTarget.fromProfile(BossProfile.GENERAL_PVM), CombatStyle.RANGED, BudgetTier.NO_LIMIT, stats, staleLiveItems);
 
-		assertEquals("tumeken's shadow", recommendation.getItem(GearSlot.WEAPON).getName());
+		assertEquals("tumeken's shadow", magic.getItem(GearSlot.WEAPON).getName());
+		assertEquals("twisted bow", ranged.getItem(GearSlot.WEAPON).getName());
+		assertFalse(ranged.getItems().values().stream().anyMatch(item -> GearRecommendationEngine.isExcludedMinigameItem(item.getName())));
+	}
+
+	@Test
+	public void excludesCorruptedGauntletTemporaryItems()
+	{
+		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("corrupted bow (perfected)"));
+		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("Corrupted staff (attuned)"));
+		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("basic halberd"));
+		assertFalse(GearRecommendationEngine.isExcludedMinigameItem("crystal bow"));
+		assertFalse(GearRecommendationEngine.isExcludedMinigameItem("bow of faerdhinen"));
 	}
 
 	@Test

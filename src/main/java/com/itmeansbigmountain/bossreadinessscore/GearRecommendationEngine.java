@@ -56,16 +56,40 @@ public final class GearRecommendationEngine
 		Map<String, GearItem> merged = new LinkedHashMap<>();
 		for (GearItem item : liveItems)
 		{
-			if (item != null)
+			if (item != null && !isExcludedMinigameItem(item.getName()))
 			{
 				merged.put(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
 			}
 		}
 		for (GearItem item : ITEMS)
 		{
-			merged.putIfAbsent(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
+			if (!isExcludedMinigameItem(item.getName()))
+			{
+				// Local OSRS-backed items are curated to include current 2H megarares and to avoid
+				// stale/mis-scored live API rows, so they intentionally override same-name live rows.
+				merged.put(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
+			}
 		}
 		return new ArrayList<>(merged.values());
+	}
+
+	static boolean isExcludedMinigameItem(String name)
+	{
+		if (name == null)
+		{
+			return false;
+		}
+		String normalized = name.toLowerCase(Locale.ROOT);
+		return normalized.startsWith("corrupted ")
+			|| normalized.startsWith("attuned ")
+			|| normalized.startsWith("perfected ")
+			|| normalized.startsWith("basic bow")
+			|| normalized.startsWith("basic staff")
+			|| normalized.startsWith("basic halberd")
+			|| normalized.contains(" gauntlet")
+			|| normalized.contains("(perfected)")
+			|| normalized.contains("(attuned)")
+			|| normalized.contains("(basic)");
 	}
 
 	private static SetupRecommendation recommendSingleStyle(BossTarget boss, CombatStyle style, BudgetTier budget, PlayerStats stats, List<GearItem> items)

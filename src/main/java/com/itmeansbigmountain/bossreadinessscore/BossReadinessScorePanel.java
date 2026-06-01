@@ -264,7 +264,7 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addSlot(JPanel grid, SetupRecommendation recommendation, GearSlot slot, int x, int y)
 	{
-		GearItem selectedWeapon = recommendation.getItem(GearSlot.WEAPON);
+		GearItem selectedWeapon = displayedWeapon(recommendation);
 		boolean disabledByTwoHander = slot == GearSlot.SHIELD && selectedWeapon != null && selectedWeapon.isTwoHanded();
 		List<GearItem> alternatives = disabledByTwoHander ? java.util.Collections.emptyList() : recommendation.getAlternativesForSlot(slot);
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
@@ -375,6 +375,17 @@ public class BossReadinessScorePanel extends PluginPanel
 		button.setPreferredSize(new Dimension(8, 16));
 		button.setFont(button.getFont().deriveFont(6.5F));
 		return button;
+	}
+
+	private GearItem displayedWeapon(SetupRecommendation recommendation)
+	{
+		List<GearItem> weaponAlternatives = recommendation.getAlternativesForSlot(GearSlot.WEAPON);
+		if (weaponAlternatives.isEmpty())
+		{
+			return recommendation.getItem(GearSlot.WEAPON);
+		}
+		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(GearSlot.WEAPON, 0), weaponAlternatives.size() - 1));
+		return weaponAlternatives.get(index);
 	}
 
 	private void cycleSlot(GearSlot slot, int delta)
