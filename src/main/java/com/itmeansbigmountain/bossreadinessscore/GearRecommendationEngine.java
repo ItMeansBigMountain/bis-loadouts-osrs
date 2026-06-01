@@ -302,7 +302,8 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.HANDS, "zaryte vambraces", ranged, 0, 0, 80, 0, 80, 0, 18, 2, 80_000_000, "High-end ranged gloves."));
 		items.add(item(GearSlot.FEET, "pegasian boots", ranged, 0, 0, 75, 0, 75, 0, 12, 0, 35_000_000, "Ranged boots."));
 		items.add(item(GearSlot.RING, "archers ring (i)", ranged, 0, 0, 1, 0, 70, 0, 8, 0, 4_000_000, "Ranged ring."));
-		items.add(item(GearSlot.AMMUNITION, "dragon arrows / bolts", ranged, 0, 0, 1, 0, 70, 0, 0, 60, 2_000, "Ammo placeholder."));
+		items.add(item(GearSlot.AMMUNITION, "dragon arrow", ranged, 0, 0, 1, 0, 60, 0, 0, 60, 2_000, "OSRS Wiki-backed ranged ammo."));
+		items.add(item(GearSlot.AMMUNITION, "dizana's quiver", ranged, 0, 0, 1, 0, 75, 0, 18, 4, 0, "Fortis Colosseum ranged cape/ammo-slot upgrade."));
 	}
 
 	private static void addMelee(List<GearItem> items)
@@ -310,10 +311,10 @@ public final class GearRecommendationEngine
 		Set<CombatStyle> melee = EnumSet.of(CombatStyle.MELEE, CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH);
 		items.add(item(GearSlot.WEAPON, "dragon scimitar", melee, 60, 60, 1, 0, 0, 0, 67, 66, 60_000, "Budget melee."));
 		items.add(item(GearSlot.WEAPON, "abyssal whip", melee, 70, 70, 1, 0, 0, 0, 82, 82, 1_700_000, "Midgame melee."));
-		items.add(item(GearSlot.WEAPON, "fang / lance equivalent", melee, 82, 75, 1, 0, 0, 0, 105, 103, 18_000_000, "Bossing melee option."));
+		items.add(item(GearSlot.WEAPON, "osmumten's fang", melee, 82, 75, 1, 0, 0, 0, 105, 103, 18_000_000, "Bossing melee option."));
 		items.add(item(GearSlot.WEAPON, "noxious halberd", melee, 80, 80, 1, 0, 0, 0, 132, 142, 50_000_000, "High-end melee inspiration."));
-		items.add(item(GearSlot.HEAD, "nezzy helm", melee, 1, 1, 45, 0, 0, 0, 0, 3, 50_000, "Budget melee."));
-		items.add(item(GearSlot.HEAD, "faceguard", melee, 1, 1, 70, 0, 0, 0, 0, 6, 20_000_000, "Strong melee helm."));
+		items.add(item(GearSlot.HEAD, "helm of neitiznot", melee, 1, 1, 45, 0, 0, 0, 0, 3, 50_000, "Budget melee."));
+		items.add(item(GearSlot.HEAD, "neitiznot faceguard", melee, 1, 1, 70, 0, 0, 0, 0, 6, 20_000_000, "Strong melee helm."));
 		items.add(item(GearSlot.BODY, "fighter torso", melee, 1, 1, 40, 0, 0, 0, 0, 4, 0, "Free melee body."));
 		items.add(item(GearSlot.BODY, "bandos chestplate", melee, 1, 1, 65, 0, 0, 0, 0, 4, 35_000_000, "Strength body."));
 		items.add(item(GearSlot.LEGS, "obsidian platelegs", melee, 1, 1, 60, 0, 0, 0, 0, 1, 900_000, "Budget legs."));
@@ -377,13 +378,13 @@ public final class GearRecommendationEngine
 			case "zaryte vambraces": return 26235;
 			case "pegasian boots": return 13237;
 			case "archers ring (i)": return 11771;
-			case "dragon arrows / bolts": return 11212;
+			case "dragon arrow": return 11212;
 			case "dragon scimitar": return 4587;
 			case "abyssal whip": return 4151;
-			case "fang / lance equivalent": return 26219;
+			case "osmumten's fang": return 26219;
 			case "noxious halberd": return 29796;
-			case "nezzy helm": return 10828;
-			case "faceguard": return 24271;
+			case "helm of neitiznot": return 10828;
+			case "neitiznot faceguard": return 24271;
 			case "fighter torso": return 10551;
 			case "bandos chestplate": return 11832;
 			case "obsidian platelegs": return 21304;

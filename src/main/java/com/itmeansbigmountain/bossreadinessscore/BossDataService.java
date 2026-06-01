@@ -357,11 +357,12 @@ public class BossDataService
 			return Optional.empty();
 		}
 		long price = Math.max(0L, longValue(obj, "price", 0L));
-		String sourceNote = "Live GearScape stats; wiki: " + OsrsWikiApiClient.pageUrl(name);
+		String wikiUrl = OsrsWikiApiClient.pageUrl(name);
+		String sourceNote = "Live GearScape stats; OSRS Wiki item page: " + wikiUrl;
 		return Optional.of(new GearItem(slot, itemIdFor(obj), name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
-			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null)));
+			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl));
 	}
 
 	private static Set<CombatStyle> stylesFor(JsonObject obj)

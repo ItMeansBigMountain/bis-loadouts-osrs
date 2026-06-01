@@ -98,5 +98,28 @@ public class GearRecommendationEngineTest
 		assertEquals(23971, GearRecommendationEngine.fallbackItemId("Crystal helm"));
 		assertEquals(23857, GearRecommendationEngine.fallbackItemId("corrupted bow (perfected)"));
 		assertEquals(28951, GearRecommendationEngine.fallbackItemId("dizana's quiver"));
+		assertEquals(26219, GearRecommendationEngine.fallbackItemId("Osmumten's fang"));
+		assertEquals(10828, GearRecommendationEngine.fallbackItemId("Helm of neitiznot"));
+	}
+
+	@Test
+	public void recommendedItemsUseOldSchoolWikiLinksAndCanonicalItemNames()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			BossProfile.GENERAL_PVM,
+			CombatStyle.MELEE,
+			BudgetTier.NO_LIMIT,
+			stats
+		);
+
+		for (GearItem item : recommendation.getItems().values())
+		{
+			assertTrue(item.getWikiUrl(), item.getWikiUrl().startsWith("https://oldschool.runescape.wiki/w/"));
+			assertFalse("placeholder item names should not be recommended", item.getName().contains(" / "));
+			assertFalse("placeholder shorthand should not be recommended", item.getName().equals("nezzy helm"));
+			assertFalse("placeholder shorthand should not be recommended", item.getName().equals("faceguard"));
+		}
 	}
 }

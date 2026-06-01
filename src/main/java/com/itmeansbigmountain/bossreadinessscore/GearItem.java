@@ -20,6 +20,7 @@ public class GearItem
 	private final long price;
 	private final String note;
 	private final String iconBase64;
+	private final String wikiUrl;
 
 	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
@@ -36,6 +37,12 @@ public class GearItem
 	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64)
 	{
+		this(slot, itemId, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note, iconBase64, OsrsWikiApiClient.pageUrl(name));
+	}
+
+	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64, String wikiUrl)
+	{
 		this.slot = slot;
 		this.itemId = itemId;
 		this.name = name;
@@ -51,6 +58,7 @@ public class GearItem
 		this.price = price;
 		this.note = note;
 		this.iconBase64 = iconBase64;
+		this.wikiUrl = wikiUrl == null || wikiUrl.trim().isEmpty() ? OsrsWikiApiClient.pageUrl(name) : wikiUrl;
 	}
 
 	public GearSlot getSlot()
@@ -126,6 +134,11 @@ public class GearItem
 	public String getIconBase64()
 	{
 		return iconBase64;
+	}
+
+	public String getWikiUrl()
+	{
+		return wikiUrl;
 	}
 
 	public boolean supports(CombatStyle style)

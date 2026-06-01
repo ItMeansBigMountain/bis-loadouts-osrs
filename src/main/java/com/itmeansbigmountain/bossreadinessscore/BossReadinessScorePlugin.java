@@ -2,12 +2,14 @@ package com.itmeansbigmountain.bossreadinessscore;
 
 import com.google.inject.Provides;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +69,7 @@ public class BossReadinessScorePlugin extends Plugin
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
 		panel.setItemIconProvider(this::applyItemIcon);
+		panel.setItemWikiOpener(this::openItemWiki);
 		panel.setAnalyzeListener((bossName, style) -> {
 			selectedBossName = bossName;
 			selectedStyle = style == null ? CombatStyle.AUTO : style;
@@ -192,6 +195,29 @@ public class BossReadinessScorePlugin extends Plugin
 				}
 			});
 		});
+	}
+
+	private void openItemWiki(GearItem item)
+	{
+		if (item == null || item.getWikiUrl() == null || item.getWikiUrl().isEmpty())
+		{
+			return;
+		}
+		try
+		{
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+			{
+				Desktop.getDesktop().browse(URI.create(item.getWikiUrl()));
+			}
+			else
+			{
+				log.info("OSRS Wiki page for {}: {}", item.getName(), item.getWikiUrl());
+			}
+		}
+		catch (Exception ex)
+		{
+			log.warn("Unable to open OSRS Wiki page for {}: {}", item.getName(), item.getWikiUrl(), ex);
+		}
 	}
 
 	private void applyItemIcon(GearItem item, JLabel label)

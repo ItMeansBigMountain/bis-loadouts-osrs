@@ -2,18 +2,22 @@ package com.itmeansbigmountain.bossreadinessscore;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -37,6 +41,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private static final String NONE_BOSS = "None";
 	private static final int PANEL_WIDTH = 220;
 	private static final int TEXT_WIDTH = 198;
+	private static final int CONTROL_WIDTH = 190;
 	private static final int EQUIPMENT_CELL_WIDTH = 60;
 	private static final int EQUIPMENT_CELL_HEIGHT = 68;
 	private static final int ICON_SIZE = 32;
@@ -52,6 +57,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final JRadioButton meleeStyle = new JRadioButton("Melee");
 	private BiConsumer<String, CombatStyle> analyzeListener;
 	private BiConsumer<GearItem, JLabel> itemIconProvider = (item, label) -> { };
+	private Consumer<GearItem> itemWikiOpener = item -> { };
 	private boolean updatingBossSelector;
 	private SetupRecommendation currentRecommendation;
 	private BossTarget currentTarget;
@@ -80,6 +86,11 @@ public class BossReadinessScorePanel extends PluginPanel
 	public void setItemIconProvider(BiConsumer<GearItem, JLabel> itemIconProvider)
 	{
 		this.itemIconProvider = itemIconProvider == null ? (item, label) -> { } : itemIconProvider;
+	}
+
+	public void setItemWikiOpener(Consumer<GearItem> itemWikiOpener)
+	{
+		this.itemWikiOpener = itemWikiOpener == null ? item -> { } : itemWikiOpener;
 	}
 
 	public void showWaitingForLogin(List<String> suggestions, String status)
@@ -122,9 +133,12 @@ public class BossReadinessScorePanel extends PluginPanel
 		addSpacer();
 		addStyleControls();
 		addSpacer();
-		JButton analyze = new JButton("ANALYZE");
-		analyze.setAlignmentX(Component.CENTER_ALIGNMENT);
-		analyze.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+		JButton analyze = new JButton("Analyze");
+		analyze.setAlignmentX(Component.LEFT_ALIGNMENT);
+		Dimension analyzeSize = new Dimension(CONTROL_WIDTH, 32);
+		analyze.setPreferredSize(analyzeSize);
+		analyze.setMinimumSize(new Dimension(140, 30));
+		analyze.setMaximumSize(new Dimension(TEXT_WIDTH, 32));
 		analyze.addActionListener(event -> {
 			if (analyzeListener != null)
 			{
@@ -142,7 +156,10 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		bossSelector.setEditable(true);
 		bossSelector.setModel(bossModel);
-		bossSelector.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+		Dimension bossSelectorSize = new Dimension(CONTROL_WIDTH, 28);
+		bossSelector.setPreferredSize(bossSelectorSize);
+		bossSelector.setMinimumSize(bossSelectorSize);
+		bossSelector.setMaximumSize(bossSelectorSize);
 		bossSelector.setSelectedItem(NONE_BOSS);
 		if (bossSelector.getEditor().getEditorComponent() instanceof JTextField)
 		{
@@ -182,14 +199,21 @@ public class BossReadinessScorePanel extends PluginPanel
 		}
 		filterBossOptions(selectedBoss(), false);
 		bossSelector.setAlignmentX(Component.LEFT_ALIGNMENT);
-		content.add(bossSelector);
+		JPanel selectorWrapper = new JPanel(new GridBagLayout());
+		selectorWrapper.setOpaque(false);
+		selectorWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+		selectorWrapper.setMaximumSize(new Dimension(TEXT_WIDTH, 30));
+		selectorWrapper.add(bossSelector, new GridBagConstraints());
+		content.add(selectorWrapper);
 	}
 
 	private void addStyleControls()
 	{
 		addTitle("Setup style");
 		JPanel styleGrid = new JPanel(new GridBagLayout());
+		styleGrid.setOpaque(false);
 		styleGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
+		styleGrid.setMaximumSize(new Dimension(CONTROL_WIDTH, 42));
 		addStyleButton(styleGrid, autoStyle, 0, 0);
 		addStyleButton(styleGrid, magicStyle, 1, 0);
 		addStyleButton(styleGrid, rangedStyle, 0, 1);
@@ -264,6 +288,9 @@ public class BossReadinessScorePanel extends PluginPanel
 		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setForeground(Color.WHITE);
 		label.setFont(label.getFont().deriveFont(7.5F));
+		makeItemWikiClickable(center, item);
+		makeItemWikiClickable(icon, item);
+		makeItemWikiClickable(label, item);
 		center.add(icon);
 		center.add(label);
 		cell.add(left, BorderLayout.WEST);
@@ -292,13 +319,13 @@ public class BossReadinessScorePanel extends PluginPanel
 		if (label.getIcon() == null && (item.getItemId() <= 0 && (item.getIconBase64() == null || item.getIconBase64().isEmpty())))
 		{
 			label.setText("?");
-			label.setToolTipText(item.getName() + " (missing item image)");
+			label.setToolTipText(item.getName() + " (missing item image) - click for OSRS Wiki");
 			label.setForeground(Color.LIGHT_GRAY);
 		}
 		else
 		{
 			label.setText("");
-			label.setToolTipText(item.getName());
+			label.setToolTipText(item.getName() + " - click for OSRS Wiki");
 		}
 		return label;
 	}
@@ -318,6 +345,23 @@ public class BossReadinessScorePanel extends PluginPanel
 				addLine(alt.getStyle().toString(), String.format("%.2f DPS", alt.getEstimatedDps()));
 			}
 		}
+	}
+
+	private void makeItemWikiClickable(Component component, GearItem item)
+	{
+		if (item == null)
+		{
+			return;
+		}
+		component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		component.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent event)
+			{
+				itemWikiOpener.accept(item);
+			}
+		});
 	}
 
 	private JButton tinyButton(String text)
@@ -347,12 +391,14 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addStyleButton(JPanel styleGrid, JRadioButton button, int x, int y)
 	{
-		button.setFont(button.getFont().deriveFont(10.5F));
+		button.setFont(button.getFont().deriveFont(10.0F));
+		button.setMargin(new Insets(0, 0, 0, 0));
+		button.setOpaque(false);
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = x;
 		constraints.gridy = y;
 		constraints.anchor = GridBagConstraints.WEST;
-		constraints.insets = new Insets(0, 0, 0, 4);
+		constraints.insets = new Insets(0, 0, 0, 2);
 		styleGrid.add(button, constraints);
 	}
 

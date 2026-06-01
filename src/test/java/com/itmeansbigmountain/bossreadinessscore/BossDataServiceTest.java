@@ -3,6 +3,7 @@ package com.itmeansbigmountain.bossreadinessscore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class BossDataServiceTest
@@ -26,5 +27,14 @@ public class BossDataServiceTest
 
 		assertEquals("Best overall", target.getLabel());
 		assertTrue(target.getSource().contains("No boss selected"));
+	}
+
+	@Test
+	public void wikiPageUrlsAlwaysUseOldSchoolRunescapeWiki()
+	{
+		String wikiUrl = OsrsWikiApiClient.pageUrl("dizana's quiver");
+
+		assertTrue(wikiUrl.startsWith("https://oldschool.runescape.wiki/w/"));
+		assertFalse(wikiUrl.contains("runescape.wiki/w/rs3"));
 	}
 }
