@@ -143,13 +143,17 @@ public class GearRecommendationEngineTest
 	}
 
 	@Test
-	public void excludesCorruptedGauntletTemporaryItems()
+	public void excludesGameModeSpecificTemporaryItems()
 	{
-		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("corrupted bow (perfected)"));
-		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("Corrupted staff (attuned)"));
-		assertTrue(GearRecommendationEngine.isExcludedMinigameItem("basic halberd"));
-		assertFalse(GearRecommendationEngine.isExcludedMinigameItem("crystal bow"));
-		assertFalse(GearRecommendationEngine.isExcludedMinigameItem("bow of faerdhinen"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("corrupted bow (perfected)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Corrupted staff (attuned)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("basic halberd"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Deadman armour"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Trailblazer reloaded blowpipe ornament kit"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Leagues trophy"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Relic hunter body"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("crystal bow"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("bow of faerdhinen"));
 	}
 
 	@Test

@@ -56,14 +56,14 @@ public final class GearRecommendationEngine
 		Map<String, GearItem> merged = new LinkedHashMap<>();
 		for (GearItem item : liveItems)
 		{
-			if (item != null && !isExcludedMinigameItem(item.getName()))
+			if (item != null && !isExcludedGameModeItem(item.getName()))
 			{
 				merged.put(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
 			}
 		}
 		for (GearItem item : ITEMS)
 		{
-			if (!isExcludedMinigameItem(item.getName()))
+			if (!isExcludedGameModeItem(item.getName()))
 			{
 				// Local OSRS-backed items are curated to include current 2H megarares and to avoid
 				// stale/mis-scored live API rows, so they intentionally override same-name live rows.
@@ -73,7 +73,7 @@ public final class GearRecommendationEngine
 		return new ArrayList<>(merged.values());
 	}
 
-	static boolean isExcludedMinigameItem(String name)
+	static boolean isExcludedGameModeItem(String name)
 	{
 		if (name == null)
 		{
@@ -89,7 +89,24 @@ public final class GearRecommendationEngine
 			|| normalized.contains(" gauntlet")
 			|| normalized.contains("(perfected)")
 			|| normalized.contains("(attuned)")
-			|| normalized.contains("(basic)");
+			|| normalized.contains("(basic)")
+			|| normalized.contains("deadman")
+			|| normalized.contains("deadman's")
+			|| normalized.contains("deadman mode")
+			|| normalized.contains("leagues")
+			|| normalized.contains("league ")
+			|| normalized.contains("trailblazer")
+			|| normalized.contains("twisted league")
+			|| normalized.contains("shattered relics")
+			|| normalized.contains("relic hunter")
+			|| normalized.contains("trophy")
+			|| normalized.contains("competitive")
+			|| normalized.contains("seasonal");
+	}
+
+	static boolean isExcludedMinigameItem(String name)
+	{
+		return isExcludedGameModeItem(name);
 	}
 
 	private static SetupRecommendation recommendSingleStyle(BossTarget boss, CombatStyle style, BudgetTier budget, PlayerStats stats, List<GearItem> items)

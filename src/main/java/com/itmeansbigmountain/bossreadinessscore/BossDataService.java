@@ -341,7 +341,7 @@ public class BossDataService
 	private Optional<GearItem> toGearItem(GearSlot slot, JsonObject obj)
 	{
 		String name = stringValue(obj, "name", "");
-		if (name.isEmpty() || name.toLowerCase(Locale.ROOT).contains("null") || GearRecommendationEngine.isExcludedMinigameItem(name))
+		if (name.isEmpty() || name.toLowerCase(Locale.ROOT).contains("null") || GearRecommendationEngine.isExcludedGameModeItem(name))
 		{
 			return Optional.empty();
 		}
