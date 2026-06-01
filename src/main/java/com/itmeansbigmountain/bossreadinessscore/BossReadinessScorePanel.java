@@ -40,7 +40,9 @@ public class BossReadinessScorePanel extends PluginPanel
 	private static final String NONE_BOSS = "None";
 	private static final int PANEL_WIDTH = 220;
 	private static final int TEXT_WIDTH = 198;
-	private static final int ICON_SIZE = 24;
+	private static final int EQUIPMENT_CELL_WIDTH = 60;
+	private static final int EQUIPMENT_CELL_HEIGHT = 54;
+	private static final int ICON_SIZE = 22;
 
 	private final JPanel content = new JPanel();
 	private final JComboBox<String> bossSelector = new JComboBox<>();
@@ -215,7 +217,6 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		addTitle("Recommended equipment");
 		JPanel grid = new JPanel(new GridBagLayout());
-		grid.setAlignmentX(Component.LEFT_ALIGNMENT);
 		grid.setBorder(BorderFactory.createLineBorder(new Color(80, 75, 65), 1));
 		grid.setBackground(new Color(46, 42, 35));
 		addSlot(grid, recommendation, GearSlot.HEAD, 1, 0);
@@ -229,7 +230,13 @@ public class BossReadinessScorePanel extends PluginPanel
 		addSlot(grid, recommendation, GearSlot.HANDS, 0, 4);
 		addSlot(grid, recommendation, GearSlot.FEET, 1, 4);
 		addSlot(grid, recommendation, GearSlot.RING, 2, 4);
-		content.add(grid);
+
+		JPanel gridWrapper = new JPanel(new GridBagLayout());
+		gridWrapper.setOpaque(false);
+		gridWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
+		gridWrapper.setMaximumSize(new Dimension(TEXT_WIDTH, grid.getPreferredSize().height));
+		gridWrapper.add(grid, new GridBagConstraints());
+		content.add(gridWrapper);
 		addMuted("< > cycles alternatives.");
 	}
 
@@ -239,8 +246,9 @@ public class BossReadinessScorePanel extends PluginPanel
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
 		GearItem item = alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
 		JPanel cell = new JPanel(new BorderLayout(0, 0));
-		cell.setPreferredSize(new Dimension(66, 56));
-		cell.setMinimumSize(new Dimension(66, 56));
+		Dimension cellSize = new Dimension(EQUIPMENT_CELL_WIDTH, EQUIPMENT_CELL_HEIGHT);
+		cell.setPreferredSize(cellSize);
+		cell.setMinimumSize(cellSize);
 		cell.setBorder(BorderFactory.createLineBorder(new Color(115, 110, 95), 1));
 		cell.setBackground(new Color(62, 58, 49));
 		JButton left = tinyButton("<");
@@ -318,8 +326,8 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		JButton button = new JButton(text);
 		button.setMargin(new Insets(0, 0, 0, 0));
-		button.setPreferredSize(new Dimension(12, 18));
-		button.setFont(button.getFont().deriveFont(8.0F));
+		button.setPreferredSize(new Dimension(10, 18));
+		button.setFont(button.getFont().deriveFont(7.0F));
 		return button;
 	}
 
