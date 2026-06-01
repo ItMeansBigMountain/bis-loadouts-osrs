@@ -361,7 +361,7 @@ public class BossDataService
 		return Optional.of(new GearItem(slot, itemIdFor(obj), name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
-			attackBonus, strengthBonus, price, sourceNote));
+			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null)));
 	}
 
 	private static Set<CombatStyle> stylesFor(JsonObject obj)

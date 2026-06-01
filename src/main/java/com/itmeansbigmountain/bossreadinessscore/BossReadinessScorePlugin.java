@@ -3,13 +3,18 @@ package com.itmeansbigmountain.bossreadinessscore;
 import com.google.inject.Provides;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.concurrent.ExecutorService;
-import javax.imageio.ImageIO;
 import java.util.concurrent.Executors;
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -61,7 +66,7 @@ public class BossReadinessScorePlugin extends Plugin
 		log.debug("Boss Readiness Score started");
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
-		panel.setItemImageProvider(this::loadItemImage);
+		panel.setItemIconProvider(this::applyItemIcon);
 		panel.setAnalyzeListener((bossName, style) -> {
 			selectedBossName = bossName;
 			selectedStyle = style == null ? CombatStyle.AUTO : style;
@@ -189,20 +194,41 @@ public class BossReadinessScorePlugin extends Plugin
 		});
 	}
 
-	private AsyncBufferedImage loadItemImage(GearItem item)
+	private void applyItemIcon(GearItem item, JLabel label)
 	{
-		if (item == null || item.getItemId() <= 0)
+		if (item == null)
 		{
-			return null;
+			return;
+		}
+		if (item.getIconBase64() != null && !item.getIconBase64().isEmpty())
+		{
+			try
+			{
+				BufferedImage image = ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(item.getIconBase64())));
+				if (image != null)
+				{
+					Image scaled = image.getScaledInstance(32, 32, Image.SCALE_FAST);
+					label.setIcon(new ImageIcon(scaled));
+					return;
+				}
+			}
+			catch (IOException | IllegalArgumentException ex)
+			{
+				log.debug("Unable to decode embedded item icon for {}", item.getName(), ex);
+			}
+		}
+		if (item.getItemId() <= 0)
+		{
+			return;
 		}
 		try
 		{
-			return itemManager.getImage(item.getItemId());
+			AsyncBufferedImage image = itemManager.getImage(item.getItemId());
+			image.addTo(label);
 		}
 		catch (Exception ex)
 		{
 			log.debug("Unable to load item image for {} ({})", item.getName(), item.getItemId(), ex);
-			return null;
 		}
 	}
 

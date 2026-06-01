@@ -91,4 +91,12 @@ public class GearRecommendationEngineTest
 		assertTrue(recommendation.getStyle().isMelee());
 		assertTrue(recommendation.getItem(GearSlot.WEAPON).supports(CombatStyle.MELEE));
 	}
+
+	@Test
+	public void knownItemFallbackIdsAreCaseInsensitiveForIconLookup()
+	{
+		assertEquals(23971, GearRecommendationEngine.fallbackItemId("Crystal helm"));
+		assertEquals(23857, GearRecommendationEngine.fallbackItemId("corrupted bow (perfected)"));
+		assertEquals(28951, GearRecommendationEngine.fallbackItemId("dizana's quiver"));
+	}
 }

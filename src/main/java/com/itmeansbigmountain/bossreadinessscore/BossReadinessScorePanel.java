@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -32,7 +31,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.util.AsyncBufferedImage;
 
 public class BossReadinessScorePanel extends PluginPanel
 {
@@ -53,7 +51,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final JRadioButton rangedStyle = new JRadioButton("Range");
 	private final JRadioButton meleeStyle = new JRadioButton("Melee");
 	private BiConsumer<String, CombatStyle> analyzeListener;
-	private Function<GearItem, AsyncBufferedImage> itemImageProvider = item -> null;
+	private BiConsumer<GearItem, JLabel> itemIconProvider = (item, label) -> { };
 	private boolean updatingBossSelector;
 	private SetupRecommendation currentRecommendation;
 	private BossTarget currentTarget;
@@ -79,9 +77,9 @@ public class BossReadinessScorePanel extends PluginPanel
 		this.analyzeListener = analyzeListener;
 	}
 
-	public void setItemImageProvider(Function<GearItem, AsyncBufferedImage> itemImageProvider)
+	public void setItemIconProvider(BiConsumer<GearItem, JLabel> itemIconProvider)
 	{
-		this.itemImageProvider = itemImageProvider == null ? item -> null : itemImageProvider;
+		this.itemIconProvider = itemIconProvider == null ? (item, label) -> { } : itemIconProvider;
 	}
 
 	public void showWaitingForLogin(List<String> suggestions, String status)
@@ -290,16 +288,18 @@ public class BossReadinessScorePanel extends PluginPanel
 			label.setForeground(Color.LIGHT_GRAY);
 			return label;
 		}
-		AsyncBufferedImage image = itemImageProvider.apply(item);
-		if (image == null)
+		itemIconProvider.accept(item, label);
+		if (label.getIcon() == null && (item.getItemId() <= 0 && (item.getIconBase64() == null || item.getIconBase64().isEmpty())))
 		{
 			label.setText("?");
-			label.setToolTipText(item.getName() + " (missing item id)");
+			label.setToolTipText(item.getName() + " (missing item image)");
 			label.setForeground(Color.LIGHT_GRAY);
-			return label;
 		}
-		image.addTo(label);
-		label.setToolTipText(item.getName());
+		else
+		{
+			label.setText("");
+			label.setToolTipText(item.getName());
+		}
 		return label;
 	}
 

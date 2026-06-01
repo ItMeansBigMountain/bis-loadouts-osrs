@@ -19,6 +19,7 @@ public class GearItem
 	private final int strengthBonus;
 	private final long price;
 	private final String note;
+	private final String iconBase64;
 
 	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
@@ -28,6 +29,12 @@ public class GearItem
 
 	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
+	{
+		this(slot, itemId, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note, null);
+	}
+
+	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64)
 	{
 		this.slot = slot;
 		this.itemId = itemId;
@@ -43,6 +50,7 @@ public class GearItem
 		this.strengthBonus = strengthBonus;
 		this.price = price;
 		this.note = note;
+		this.iconBase64 = iconBase64;
 	}
 
 	public GearSlot getSlot()
@@ -113,6 +121,11 @@ public class GearItem
 	public String getNote()
 	{
 		return note;
+	}
+
+	public String getIconBase64()
+	{
+		return iconBase64;
 	}
 
 	public boolean supports(CombatStyle style)
