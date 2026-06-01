@@ -28,16 +28,6 @@ public class BossReadinessScorePluginTest
 		assertTrue(lowAccountScore < 70);
 	}
 
-	@Test
-	public void buildSummaryMessageIncludesBossProfileScoreAndRecommendation()
-	{
-		String message = BossReadinessScorePlugin.buildSummaryMessage("Vorkath", 65, 70);
-
-		assertTrue(message.contains("Vorkath"));
-		assertTrue(message.contains("65/100"));
-		assertTrue(message.contains("caution"));
-	}
-
 	public static void main(String[] args) throws Exception
 	{
 		ExternalPluginManager.loadBuiltin(BossReadinessScorePlugin.class);

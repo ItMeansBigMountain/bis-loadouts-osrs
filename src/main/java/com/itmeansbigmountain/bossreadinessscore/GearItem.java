@@ -104,6 +104,10 @@ public class GearItem
 
 	public boolean supports(CombatStyle style)
 	{
+		if (style == CombatStyle.MELEE)
+		{
+			return styles.contains(CombatStyle.STAB) || styles.contains(CombatStyle.SLASH) || styles.contains(CombatStyle.CRUSH);
+		}
 		return styles.contains(style);
 	}
 

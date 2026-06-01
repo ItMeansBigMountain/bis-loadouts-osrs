@@ -4,12 +4,11 @@ import com.google.inject.Provides;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import javax.inject.Inject;
-import javax.swing.SwingUtilities;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
@@ -24,8 +23,8 @@ import net.runelite.client.ui.NavigationButton;
 
 @PluginDescriptor(
 	name = "Boss Readiness Score",
-	description = "Scores account readiness for bossing from combat, Hitpoints, Prayer, and Defence levels.",
-	tags = {"boss", "pvm", "readiness", "combat"}
+	description = "Side-panel boss gear analyzer that recommends best wearable OSRS gear by stats, boss, and combat style.",
+	tags = {"boss", "pvm", "readiness", "gear", "bis"}
 )
 @Slf4j
 public class BossReadinessScorePlugin extends Plugin
@@ -41,13 +40,12 @@ public class BossReadinessScorePlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
-	@Inject
-	private ConfigManager configManager;
-
 	private final BossDataService bossDataService = new BossDataService();
 	private ExecutorService apiExecutor;
 	private BossReadinessScorePanel panel;
 	private NavigationButton navButton;
+	private volatile String selectedBossName = "None - best overall for my stats";
+	private volatile CombatStyle selectedStyle = CombatStyle.AUTO;
 
 	@Override
 	protected void startUp()
@@ -55,8 +53,12 @@ public class BossReadinessScorePlugin extends Plugin
 		log.debug("Boss Readiness Score started");
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
-		panel.setBossSelectionListener(this::selectBossNameFromPanel);
-		panel.showWaitingForLogin();
+		panel.setAnalyzeListener((bossName, style) -> {
+			selectedBossName = bossName;
+			selectedStyle = style == null ? CombatStyle.AUTO : style;
+			refreshPanel(true);
+		});
+		panel.showWaitingForLogin(bossDataService.getBossNameSuggestions(1000), bossDataService.getStatus());
 		navButton = NavigationButton.builder()
 			.tooltip("Boss Readiness Score")
 			.icon(createIcon())
@@ -73,9 +75,8 @@ public class BossReadinessScorePlugin extends Plugin
 			{
 				log.warn("Unable to refresh OSRS Wiki/GearScape data", ex);
 			}
-			refreshPanel();
+			refreshPanel(false);
 		});
-		refreshPanel();
 	}
 
 	@Override
@@ -97,26 +98,10 @@ public class BossReadinessScorePlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		if (gameStateChanged.getGameState() != GameState.LOGGED_IN)
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			return;
+			refreshPanel(false);
 		}
-
-		refreshPanel();
-		if (!config.showLoginSummary())
-		{
-			return;
-		}
-
-		int combatLevel = client.getLocalPlayer() == null ? 0 : client.getLocalPlayer().getCombatLevel();
-		int hitpoints = client.getRealSkillLevel(Skill.HITPOINTS);
-		int prayer = client.getRealSkillLevel(Skill.PRAYER);
-		int defence = client.getRealSkillLevel(Skill.DEFENCE);
-		int score = calculateReadinessScore(combatLevel, hitpoints, prayer, defence,
-			config.targetCombatLevel(), config.targetPrayerLevel());
-
-		String bossName = config.bossName() == null || config.bossName().trim().isEmpty() ? config.bossProfile().getLabel() : config.bossName().trim();
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", buildSummaryMessage(bossName, score, config.warningThreshold()), null);
 	}
 
 	@Subscribe
@@ -124,7 +109,7 @@ public class BossReadinessScorePlugin extends Plugin
 	{
 		if ("bossreadinessscore".equals(event.getGroup()))
 		{
-			refreshPanel();
+			refreshPanel(false);
 		}
 	}
 
@@ -142,13 +127,6 @@ public class BossReadinessScorePlugin extends Plugin
 		return clampScore((int) Math.round(combatScore + hitpointsScore + prayerScore + defenceScore));
 	}
 
-	static String buildSummaryMessage(String bossProfile, int score, int warningThreshold)
-	{
-		String profile = bossProfile == null || bossProfile.trim().isEmpty() ? "selected boss" : bossProfile.trim();
-		String recommendation = score < warningThreshold ? "caution: consider more levels/gear before attempting" : "ready for manual gear checks";
-		return String.format("Boss Readiness Score for %s: %d/100 (%s).", profile, clampScore(score), recommendation);
-	}
-
 	private static double ratioScore(int actual, int target)
 	{
 		return Math.min(1.0D, Math.max(0.0D, actual / (double) target)) * MAX_SCORE;
@@ -159,7 +137,7 @@ public class BossReadinessScorePlugin extends Plugin
 		return Math.max(0, Math.min(MAX_SCORE, score));
 	}
 
-	private void refreshPanel()
+	private void refreshPanel(boolean forceAnalyze)
 	{
 		if (panel == null)
 		{
@@ -170,7 +148,7 @@ public class BossReadinessScorePlugin extends Plugin
 			SwingUtilities.invokeLater(() -> {
 				if (panel != null)
 				{
-					panel.showWaitingForLogin();
+					panel.showWaitingForLogin(bossDataService.getBossNameSuggestions(1000), bossDataService.getStatus());
 				}
 			});
 			return;
@@ -184,13 +162,14 @@ public class BossReadinessScorePlugin extends Plugin
 			client.getRealSkillLevel(Skill.RANGED),
 			client.getRealSkillLevel(Skill.PRAYER)
 		);
-		String requestedBossName = config.bossName();
-		BossProfile fallbackProfile = config.bossProfile();
-		CombatStyle style = config.combatStyle();
+		String requestedBossName = selectedBossName;
+		CombatStyle style = selectedStyle;
 		BudgetTier budget = config.budgetTier();
 		apiExecutor.submit(() -> {
-			BossTarget target = bossDataService.resolveBoss(requestedBossName, fallbackProfile);
-			SetupRecommendation recommendation = GearRecommendationEngine.recommend(target, style, budget, stats, bossDataService.getGearItems());
+			BossTarget target = bossDataService.resolveBoss(requestedBossName, BossProfile.GENERAL_PVM);
+			SetupRecommendation recommendation = forceAnalyze || panel != null
+				? GearRecommendationEngine.recommend(target, style, budget, stats, bossDataService.getGearItems())
+				: null;
 			String status = bossDataService.getStatus();
 			SwingUtilities.invokeLater(() -> {
 				if (panel != null)
@@ -199,22 +178,6 @@ public class BossReadinessScorePlugin extends Plugin
 				}
 			});
 		});
-	}
-
-	private void selectBossNameFromPanel(String bossName)
-	{
-		if (bossName == null || bossName.trim().isEmpty())
-		{
-			return;
-		}
-		String trimmed = bossName.trim();
-		String current = config.bossName() == null ? "" : config.bossName().trim();
-		if (trimmed.equals(current))
-		{
-			return;
-		}
-		configManager.setConfiguration("bossreadinessscore", "bossName", trimmed);
-		refreshPanel();
 	}
 
 	private static BufferedImage createIcon()

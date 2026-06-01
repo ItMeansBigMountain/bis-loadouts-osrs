@@ -28,7 +28,7 @@ public final class GearRecommendationEngine
 	{
 		List<GearItem> candidateItems = liveItems == null || liveItems.isEmpty() ? ITEMS : liveItems;
 		List<CombatStyle> styles = requestedStyle == CombatStyle.AUTO
-			? Arrays.asList(CombatStyle.MAGIC, CombatStyle.RANGED, CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH)
+			? Arrays.asList(CombatStyle.MAGIC, CombatStyle.RANGED, CombatStyle.MELEE)
 			: Collections.singletonList(requestedStyle);
 
 		List<SetupRecommendation> scored = styles.stream()
@@ -41,24 +41,31 @@ public final class GearRecommendationEngine
 			.filter(rec -> rec != best)
 			.collect(Collectors.toList());
 
-		return new SetupRecommendation(best.getBossName(), best.getStyle(), best.getItems(), best.getEstimatedDps(),
+		return new SetupRecommendation(best.getBossName(), best.getStyle(), best.getItems(), best.getSlotAlternatives(), best.getEstimatedDps(),
 			best.getHitChance(), best.getMaxHit(), best.getReadinessScore(), best.getWarnings(), alternatives);
 	}
 
 	private static SetupRecommendation recommendSingleStyle(BossTarget boss, CombatStyle style, BudgetTier budget, PlayerStats stats, List<GearItem> items)
 	{
 		Map<GearSlot, GearItem> selected = new EnumMap<>(GearSlot.class);
+		Map<GearSlot, List<GearItem>> slotAlternatives = new EnumMap<>(GearSlot.class);
 		List<String> warnings = new ArrayList<>();
 
 		for (GearSlot slot : GearSlot.values())
 		{
-			items.stream()
+			List<GearItem> alternatives = items.stream()
 				.filter(item -> item.getSlot() == slot)
 				.filter(item -> item.supports(style))
 				.filter(item -> item.getPrice() <= budget.getMaxItemPrice())
 				.filter(item -> item.meetsRequirements(stats))
-				.max(Comparator.comparingInt(GearItem::scoreValue))
-				.ifPresent(item -> selected.put(slot, item));
+				.sorted(Comparator.comparingInt(GearItem::scoreValue).reversed())
+				.limit(12)
+				.collect(Collectors.toList());
+			if (!alternatives.isEmpty())
+			{
+				selected.put(slot, alternatives.get(0));
+				slotAlternatives.put(slot, alternatives);
+			}
 		}
 
 		addRequirementWarnings(style, stats, warnings);
@@ -76,7 +83,21 @@ public final class GearRecommendationEngine
 		double dps = round(((maxHit * hitChance / 2.0D) / attackSpeed) * styleMultiplier(boss, style));
 		int readiness = calculateReadiness(boss, style, stats, selected, warnings);
 
-		return new SetupRecommendation(boss.getLabel(), style, selected, dps, hitChance, maxHit, readiness, warnings, Collections.emptyList());
+		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, readiness, warnings, Collections.emptyList());
+	}
+
+	private static CombatStyle displayStyle(CombatStyle style, BossTarget boss)
+	{
+		if (style != CombatStyle.MELEE)
+		{
+			return style;
+		}
+		int stab = boss.getDefStab();
+		int slash = boss.getDefSlash();
+		int crush = boss.getDefCrush();
+		if (stab <= slash && stab <= crush) return CombatStyle.STAB;
+		if (slash <= stab && slash <= crush) return CombatStyle.SLASH;
+		return CombatStyle.CRUSH;
 	}
 
 	private static void addRequirementWarnings(CombatStyle style, PlayerStats stats, List<String> warnings)
@@ -89,7 +110,7 @@ public final class GearRecommendationEngine
 		{
 			warnings.add("Ranged level is below 75, so top-tier ranged gear is filtered out.");
 		}
-		if ((style == CombatStyle.STAB || style == CombatStyle.SLASH || style == CombatStyle.CRUSH)
+		if (style.isMelee()
 			&& (stats.getAttack() < 75 || stats.getStrength() < 75))
 		{
 			warnings.add("Melee stats are below 75, so top-tier melee gear is filtered out.");
@@ -129,6 +150,8 @@ public final class GearRecommendationEngine
 				return stats.getMagic();
 			case RANGED:
 				return stats.getRanged();
+			case MELEE:
+				return Math.max(1.0D, (stats.getAttack() + stats.getStrength()) / 2.0D);
 			default:
 				return (stats.getAttack() + stats.getStrength()) / 2.0D;
 		}
@@ -142,6 +165,8 @@ public final class GearRecommendationEngine
 				return stats.getMagic();
 			case RANGED:
 				return stats.getRanged();
+			case MELEE:
+				return stats.getStrength();
 			default:
 				return stats.getStrength();
 		}
@@ -157,6 +182,9 @@ public final class GearRecommendationEngine
 				break;
 			case RANGED:
 				defence = boss.getDefRanged();
+				break;
+			case MELEE:
+				defence = Math.min(boss.getDefStab(), Math.min(boss.getDefSlash(), boss.getDefCrush()));
 				break;
 			case STAB:
 				defence = boss.getDefStab();
@@ -187,7 +215,7 @@ public final class GearRecommendationEngine
 		{
 			return 1.25D;
 		}
-		if (boss.getAttributes().contains("melee immune") && (style == CombatStyle.STAB || style == CombatStyle.SLASH || style == CombatStyle.CRUSH))
+		if (boss.getAttributes().contains("melee immune") && style.isMelee())
 		{
 			return 0.25D;
 		}
@@ -278,7 +306,7 @@ public final class GearRecommendationEngine
 
 	private static void addMelee(List<GearItem> items)
 	{
-		Set<CombatStyle> melee = EnumSet.of(CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH);
+		Set<CombatStyle> melee = EnumSet.of(CombatStyle.MELEE, CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH);
 		items.add(item(GearSlot.WEAPON, "dragon scimitar", melee, 60, 60, 1, 0, 0, 0, 67, 66, 60_000, "Budget melee."));
 		items.add(item(GearSlot.WEAPON, "abyssal whip", melee, 70, 70, 1, 0, 0, 0, 82, 82, 1_700_000, "Midgame melee."));
 		items.add(item(GearSlot.WEAPON, "fang / lance equivalent", melee, 82, 75, 1, 0, 0, 0, 105, 103, 18_000_000, "Bossing melee option."));

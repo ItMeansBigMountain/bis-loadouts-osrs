@@ -59,4 +59,36 @@ public class GearRecommendationEngineTest
 		assertEquals(CombatStyle.MAGIC, recommendation.getStyle());
 		assertTrue(recommendation.getAlternatives().stream().anyMatch(alt -> alt.getStyle() == CombatStyle.RANGED));
 	}
+
+	@Test
+	public void recommendationIncludesSlotAlternativesForPanelCycling()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			BossProfile.ZULRAH,
+			CombatStyle.MAGIC,
+			BudgetTier.NO_LIMIT,
+			stats
+		);
+
+		assertTrue(recommendation.getAlternativesForSlot(GearSlot.WEAPON).size() > 1);
+		assertEquals(recommendation.getItem(GearSlot.WEAPON), recommendation.getAlternativesForSlot(GearSlot.WEAPON).get(0));
+	}
+
+	@Test
+	public void meleeOnlyStyleProducesMeleeGear()
+	{
+		PlayerStats stats = new PlayerStats(80, 80, 80, 80, 70, 70, 70);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			BossProfile.GIANT_MOLE,
+			CombatStyle.MELEE,
+			BudgetTier.MIDGAME,
+			stats
+		);
+
+		assertTrue(recommendation.getStyle().isMelee());
+		assertTrue(recommendation.getItem(GearSlot.WEAPON).supports(CombatStyle.MELEE));
+	}
 }

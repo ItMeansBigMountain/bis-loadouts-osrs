@@ -34,10 +34,19 @@ public class BossDataService
 	private static final String GEARSCAPE_EQUIPMENT = "https://api.gearscape.net/api/equipment/all";
 	private static final String GEARSCAPE_WEAPONS = "https://api.gearscape.net/api/weapon/all";
 	private static final String WIKI_BOSSES_CATEGORY = "https://oldschool.runescape.wiki/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:Bosses&cmnamespace=0&cmlimit=500";
+	private static final List<String> FALLBACK_BOSSES = Arrays.asList(
+		"None - best overall for my stats", "General PvM", "Scurrius", "Giant Mole", "Barrows", "Fight Caves", "Fight Kiln", "Inferno",
+		"Vorkath", "Zulrah", "Phantom Muspah", "The Gauntlet", "Corrupted Gauntlet", "Tombs of Amascut", "Chambers of Xeric",
+		"Theatre of Blood", "Nex", "Nightmare", "Phosani's Nightmare", "Duke Sucellus", "The Leviathan", "Vardorvis", "The Whisperer",
+		"Abyssal Sire", "Alchemical Hydra", "Araxxor", "Artio", "Callisto", "Calvar'ion", "Vet'ion", "Venenatis", "Spindel",
+		"Cerberus", "Commander Zilyana", "General Graardor", "K'ril Tsutsaroth", "Kree'arra", "Dagannoth Prime", "Dagannoth Rex",
+		"Dagannoth Supreme", "Kalphite Queen", "King Black Dragon", "Kraken", "Thermonuclear smoke devil", "Corporeal Beast",
+		"Sarachnis", "Skotizo", "Tempoross", "Wintertodt", "Zalcano", "Hespori", "Obor", "Bryophyta", "Grotesque Guardians"
+	);
 
 	private final HttpClient httpClient;
 	private final OsrsWikiApiClient wikiClient;
-	private final AtomicReference<List<BossIndexEntry>> bossIndex = new AtomicReference<>(Collections.emptyList());
+	private final AtomicReference<List<BossIndexEntry>> bossIndex = new AtomicReference<>(fallbackBossEntries());
 	private final AtomicReference<List<GearItem>> gearItems = new AtomicReference<>(Collections.emptyList());
 	private volatile Instant loadedAt;
 	private volatile String status = "Wiki/GearScape data has not loaded yet.";
@@ -55,14 +64,33 @@ public class BossDataService
 
 	public void refresh() throws IOException, InterruptedException
 	{
-		List<BossIndexEntry> bosses = fetchBossIndex();
-		List<GearItem> items = fetchGearItems();
+		List<BossIndexEntry> bosses = fallbackBossEntries();
+		List<GearItem> items = Collections.emptyList();
+		String gearStatus;
+		try
+		{
+			bosses = fetchBossIndex();
+		}
+		catch (IOException | RuntimeException ex)
+		{
+			gearStatus = "Boss API unavailable; using local fallback boss list. ";
+			status = gearStatus + ex.getMessage();
+		}
+		try
+		{
+			items = fetchGearItems();
+			gearStatus = "";
+		}
+		catch (IOException | RuntimeException ex)
+		{
+			gearStatus = "Live equipment API unavailable; using checked-in gear fallback. ";
+		}
 		bossIndex.set(bosses);
 		gearItems.set(items);
 		loadedAt = Instant.now();
 		long gearscapeBosses = bosses.stream().filter(BossIndexEntry::hasGearscapeId).count();
 		long wikiOnlyBosses = bosses.size() - gearscapeBosses;
-		status = "Loaded " + bosses.size() + " boss autocomplete entries (" + gearscapeBosses + " GearScape + " + wikiOnlyBosses + " Wiki-only) and " + items.size() + " equipment records.";
+		status = gearStatus + "Loaded " + bosses.size() + " boss autocomplete entries (" + gearscapeBosses + " GearScape + " + wikiOnlyBosses + " Wiki-only) and " + items.size() + " live equipment records.";
 	}
 
 	public List<GearItem> getGearItems()
@@ -94,9 +122,12 @@ public class BossDataService
 	public BossTarget resolveBoss(String requestedBossName, BossProfile fallbackProfile)
 	{
 		String requested = requestedBossName == null ? "" : requestedBossName.trim();
-		if (requested.isEmpty())
+		if (requested.isEmpty() || requested.equalsIgnoreCase("none") || requested.toLowerCase(Locale.ROOT).startsWith("none -"))
 		{
-			requested = fallbackProfile.getLabel();
+			BossTarget general = BossTarget.fromProfile(BossProfile.GENERAL_PVM);
+			return new BossTarget("Best overall", -1, general.getTargetCombat(), general.getTargetAttack(), general.getTargetStrength(),
+				general.getTargetDefence(), general.getTargetRanged(), general.getTargetMagic(), general.getHitpoints(), 0, 0, 0, 0, 0,
+				Collections.emptyList(), "", "No boss selected; ranking strongest legal gear for your stats");
 		}
 		Optional<BossIndexEntry> match = findBestBossMatch(requested);
 		if (!match.isPresent())
@@ -217,7 +248,8 @@ public class BossDataService
 
 	private List<BossIndexEntry> fetchBossIndex() throws IOException, InterruptedException
 	{
-		Map<String, BossIndexEntry> merged = new HashMap<>();
+		Map<String, BossIndexEntry> merged = fallbackBossEntries().stream()
+			.collect(Collectors.toMap(entry -> normalize(entry.getName()), entry -> entry, (left, right) -> left, HashMap::new));
 		JsonArray monsters = getJson(GEARSCAPE_MONSTERS).getAsJsonArray("monsters");
 		for (JsonElement element : monsters)
 		{
@@ -238,6 +270,16 @@ public class BossDataService
 		}
 
 		return merged.values().stream().sorted(Comparator.comparing(BossIndexEntry::getName)).collect(Collectors.toList());
+	}
+
+	private static List<BossIndexEntry> fallbackBossEntries()
+	{
+		List<BossIndexEntry> entries = new ArrayList<>();
+		for (String name : FALLBACK_BOSSES)
+		{
+			entries.add(new BossIndexEntry(-1, name, "None - best overall for my stats".equals(name) ? 1 : 85, Arrays.asList("fallback", "boss")));
+		}
+		return entries;
 	}
 
 	private List<String> fetchWikiBossNames() throws IOException, InterruptedException
