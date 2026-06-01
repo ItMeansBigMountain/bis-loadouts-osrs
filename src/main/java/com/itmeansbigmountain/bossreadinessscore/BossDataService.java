@@ -358,7 +358,7 @@ public class BossDataService
 		}
 		long price = Math.max(0L, longValue(obj, "price", 0L));
 		String sourceNote = "Live GearScape stats; wiki: " + OsrsWikiApiClient.pageUrl(name);
-		return Optional.of(new GearItem(slot, name, styles,
+		return Optional.of(new GearItem(slot, itemIdFor(obj), name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
 			attackBonus, strengthBonus, price, sourceNote));
@@ -469,6 +469,21 @@ public class BossDataService
 	{
 		JsonElement value = obj.get(key);
 		return value == null || value.isJsonNull() ? fallback : value.getAsInt();
+	}
+
+	private static int itemIdFor(JsonObject obj)
+	{
+		int itemId = intValue(obj, "item_id", -1);
+		if (itemId > 0)
+		{
+			return itemId;
+		}
+		itemId = intValue(obj, "osrs_id", -1);
+		if (itemId > 0)
+		{
+			return itemId;
+		}
+		return intValue(obj, "id", -1);
 	}
 
 	private static long longValue(JsonObject obj, String key, long fallback)

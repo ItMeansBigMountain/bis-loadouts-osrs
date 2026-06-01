@@ -331,6 +331,66 @@ public final class GearRecommendationEngine
 	private static GearItem item(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
 	{
-		return new GearItem(slot, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note);
+		return new GearItem(slot, fallbackItemId(name), name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note);
+	}
+	private static int fallbackItemId(String name)
+	{
+		switch (name)
+		{
+			case "trident of the seas": return 11907;
+			case "trident of the swamp": return 12899;
+			case "sanguinesti staff": return 22323;
+			case "mystic hat": return 4089;
+			case "ahrim's hood": return 4708;
+			case "ancestral hat": return 21018;
+			case "mystic robe top": return 4091;
+			case "ahrim's robetop": return 4712;
+			case "ancestral robe top": return 21021;
+			case "ahrim's robeskirt": return 4714;
+			case "ancestral robe bottom": return 21024;
+			case "occult necklace": return 12002;
+			case "imbued god cape": return 21791;
+			case "elidinis' ward": return 25985;
+			case "tormented bracelet": return 19544;
+			case "eternal boots": return 13235;
+			case "magus ring": return 28313;
+			case "rune crossbow": return 9185;
+			case "toxic blowpipe": return 12926;
+			case "bow of faerdhinen": return 25862;
+			case "twisted bow": return 20997;
+			case "black d'hide coif": return 1163;
+			case "armadyl helmet": return 11826;
+			case "masori mask (f)": return 27235;
+			case "black d'hide body": return 2503;
+			case "armadyl chestplate": return 11828;
+			case "masori body (f)": return 27238;
+			case "black d'hide chaps": return 2497;
+			case "masori chaps (f)": return 27241;
+			case "necklace of anguish": return 19547;
+			case "ava's assembler": return 22109;
+			case "zaryte vambraces": return 26235;
+			case "pegasian boots": return 13237;
+			case "archers ring (i)": return 11771;
+			case "dragon arrows / bolts": return 11212;
+			case "dragon scimitar": return 4587;
+			case "abyssal whip": return 4151;
+			case "fang / lance equivalent": return 26219;
+			case "noxious halberd": return 29796;
+			case "nezzy helm": return 10828;
+			case "faceguard": return 24271;
+			case "fighter torso": return 10551;
+			case "bandos chestplate": return 11832;
+			case "obsidian platelegs": return 21304;
+			case "bandos tassets": return 11834;
+			case "amulet of fury": return 6585;
+			case "fire cape": return 6570;
+			case "infernal cape": return 21295;
+			case "barrows gloves": return 7462;
+			case "ferocious gloves": return 22981;
+			case "dragon boots": return 11840;
+			case "primordial boots": return 13239;
+			case "berserker ring (i)": return 11773;
+			default: return -1;
+		}
 	}
 }

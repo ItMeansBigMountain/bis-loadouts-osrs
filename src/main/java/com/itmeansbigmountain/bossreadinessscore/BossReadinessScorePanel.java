@@ -7,17 +7,21 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -36,6 +40,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private static final String NONE_BOSS = "None";
 	private static final int PANEL_WIDTH = 220;
 	private static final int TEXT_WIDTH = 198;
+	private static final int ICON_SIZE = 24;
 
 	private final JPanel content = new JPanel();
 	private final JComboBox<String> bossSelector = new JComboBox<>();
@@ -47,6 +52,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final JRadioButton rangedStyle = new JRadioButton("Range");
 	private final JRadioButton meleeStyle = new JRadioButton("Melee");
 	private BiConsumer<String, CombatStyle> analyzeListener;
+	private Function<GearItem, BufferedImage> itemImageProvider = item -> null;
 	private boolean updatingBossSelector;
 	private SetupRecommendation currentRecommendation;
 	private BossTarget currentTarget;
@@ -70,6 +76,11 @@ public class BossReadinessScorePanel extends PluginPanel
 	public void setAnalyzeListener(BiConsumer<String, CombatStyle> analyzeListener)
 	{
 		this.analyzeListener = analyzeListener;
+	}
+
+	public void setItemImageProvider(Function<GearItem, BufferedImage> itemImageProvider)
+	{
+		this.itemImageProvider = itemImageProvider == null ? item -> null : itemImageProvider;
 	}
 
 	public void showWaitingForLogin(List<String> suggestions, String status)
@@ -228,8 +239,8 @@ public class BossReadinessScorePanel extends PluginPanel
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
 		GearItem item = alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
 		JPanel cell = new JPanel(new BorderLayout(0, 0));
-		cell.setPreferredSize(new Dimension(66, 50));
-		cell.setMinimumSize(new Dimension(66, 50));
+		cell.setPreferredSize(new Dimension(66, 56));
+		cell.setMinimumSize(new Dimension(66, 56));
 		cell.setBorder(BorderFactory.createLineBorder(new Color(115, 110, 95), 1));
 		cell.setBackground(new Color(62, 58, 49));
 		JButton left = tinyButton("<");
@@ -238,18 +249,52 @@ public class BossReadinessScorePanel extends PluginPanel
 		right.setEnabled(alternatives.size() > 1);
 		left.addActionListener(event -> cycleSlot(slot, -1));
 		right.addActionListener(event -> cycleSlot(slot, 1));
+		JPanel center = new JPanel();
+		center.setOpaque(false);
+		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+		JLabel icon = createIconLabel(item);
+		icon.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JLabel label = new JLabel("<html><center><b>" + escape(shortSlot(slot)) + "</b><br>" + escape(item == null ? "—" : compactItemName(item.getName())) + "</center></html>");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setForeground(Color.WHITE);
-		label.setFont(label.getFont().deriveFont(8.5F));
+		label.setFont(label.getFont().deriveFont(7.5F));
+		center.add(icon);
+		center.add(label);
 		cell.add(left, BorderLayout.WEST);
-		cell.add(label, BorderLayout.CENTER);
+		cell.add(center, BorderLayout.CENTER);
 		cell.add(right, BorderLayout.EAST);
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = x;
 		constraints.gridy = y;
 		constraints.insets = new Insets(1, 1, 1, 1);
 		grid.add(cell, constraints);
+	}
+
+	private JLabel createIconLabel(GearItem item)
+	{
+		JLabel label = new JLabel();
+		label.setHorizontalAlignment(JLabel.CENTER);
+		label.setPreferredSize(new Dimension(ICON_SIZE, ICON_SIZE));
+		label.setMaximumSize(new Dimension(ICON_SIZE, ICON_SIZE));
+		if (item == null)
+		{
+			label.setText("—");
+			label.setForeground(Color.LIGHT_GRAY);
+			return label;
+		}
+		BufferedImage image = itemImageProvider.apply(item);
+		if (image == null)
+		{
+			label.setText("?");
+			label.setToolTipText(item.getName());
+			label.setForeground(Color.LIGHT_GRAY);
+			return label;
+		}
+		Image scaled = image.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH);
+		label.setIcon(new ImageIcon(scaled));
+		label.setToolTipText(item.getName());
+		return label;
 	}
 
 	private void addWarnings(SetupRecommendation recommendation)

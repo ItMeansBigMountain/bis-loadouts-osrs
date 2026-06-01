@@ -6,6 +6,7 @@ import java.util.Set;
 public class GearItem
 {
 	private final GearSlot slot;
+	private final int itemId;
 	private final String name;
 	private final Set<CombatStyle> styles;
 	private final int attackReq;
@@ -22,7 +23,14 @@ public class GearItem
 	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
 	{
+		this(slot, -1, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note);
+	}
+
+	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
+	{
 		this.slot = slot;
+		this.itemId = itemId;
 		this.name = name;
 		this.styles = EnumSet.copyOf(styles);
 		this.attackReq = attackReq;
@@ -40,6 +48,11 @@ public class GearItem
 	public GearSlot getSlot()
 	{
 		return slot;
+	}
+
+	public int getItemId()
+	{
+		return itemId;
 	}
 
 	public String getName()

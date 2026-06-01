@@ -16,6 +16,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -40,6 +41,9 @@ public class BossReadinessScorePlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
+	@Inject
+	private ItemManager itemManager;
+
 	private final BossDataService bossDataService = new BossDataService();
 	private ExecutorService apiExecutor;
 	private BossReadinessScorePanel panel;
@@ -53,6 +57,7 @@ public class BossReadinessScorePlugin extends Plugin
 		log.debug("Boss Readiness Score started");
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BossReadinessScorePanel();
+		panel.setItemImageProvider(this::loadItemImage);
 		panel.setAnalyzeListener((bossName, style) -> {
 			selectedBossName = bossName;
 			selectedStyle = style == null ? CombatStyle.AUTO : style;
@@ -178,6 +183,23 @@ public class BossReadinessScorePlugin extends Plugin
 				}
 			});
 		});
+	}
+
+	private BufferedImage loadItemImage(GearItem item)
+	{
+		if (item == null || item.getItemId() <= 0)
+		{
+			return null;
+		}
+		try
+		{
+			return itemManager.getImage(item.getItemId());
+		}
+		catch (Exception ex)
+		{
+			log.debug("Unable to load item image for {} ({})", item.getName(), item.getItemId(), ex);
+			return null;
+		}
 	}
 
 	private static BufferedImage createIcon()
