@@ -483,7 +483,12 @@ public class BossDataService
 		{
 			return itemId;
 		}
-		return intValue(obj, "id", -1);
+		itemId = intValue(obj, "id", -1);
+		if (itemId > 0)
+		{
+			return itemId;
+		}
+		return GearRecommendationEngine.fallbackItemId(stringValue(obj, "name", ""));
 	}
 
 	private static long longValue(JsonObject obj, String key, long fallback)

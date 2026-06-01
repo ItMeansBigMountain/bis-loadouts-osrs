@@ -7,9 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -34,6 +32,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.util.AsyncBufferedImage;
 
 public class BossReadinessScorePanel extends PluginPanel
 {
@@ -41,8 +40,8 @@ public class BossReadinessScorePanel extends PluginPanel
 	private static final int PANEL_WIDTH = 220;
 	private static final int TEXT_WIDTH = 198;
 	private static final int EQUIPMENT_CELL_WIDTH = 60;
-	private static final int EQUIPMENT_CELL_HEIGHT = 54;
-	private static final int ICON_SIZE = 22;
+	private static final int EQUIPMENT_CELL_HEIGHT = 68;
+	private static final int ICON_SIZE = 32;
 
 	private final JPanel content = new JPanel();
 	private final JComboBox<String> bossSelector = new JComboBox<>();
@@ -54,7 +53,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final JRadioButton rangedStyle = new JRadioButton("Range");
 	private final JRadioButton meleeStyle = new JRadioButton("Melee");
 	private BiConsumer<String, CombatStyle> analyzeListener;
-	private Function<GearItem, BufferedImage> itemImageProvider = item -> null;
+	private Function<GearItem, AsyncBufferedImage> itemImageProvider = item -> null;
 	private boolean updatingBossSelector;
 	private SetupRecommendation currentRecommendation;
 	private BossTarget currentTarget;
@@ -80,7 +79,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		this.analyzeListener = analyzeListener;
 	}
 
-	public void setItemImageProvider(Function<GearItem, BufferedImage> itemImageProvider)
+	public void setItemImageProvider(Function<GearItem, AsyncBufferedImage> itemImageProvider)
 	{
 		this.itemImageProvider = itemImageProvider == null ? item -> null : itemImageProvider;
 	}
@@ -291,16 +290,15 @@ public class BossReadinessScorePanel extends PluginPanel
 			label.setForeground(Color.LIGHT_GRAY);
 			return label;
 		}
-		BufferedImage image = itemImageProvider.apply(item);
+		AsyncBufferedImage image = itemImageProvider.apply(item);
 		if (image == null)
 		{
 			label.setText("?");
-			label.setToolTipText(item.getName());
+			label.setToolTipText(item.getName() + " (missing item id)");
 			label.setForeground(Color.LIGHT_GRAY);
 			return label;
 		}
-		Image scaled = image.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH);
-		label.setIcon(new ImageIcon(scaled));
+		image.addTo(label);
 		label.setToolTipText(item.getName());
 		return label;
 	}

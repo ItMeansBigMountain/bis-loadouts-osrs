@@ -4,7 +4,10 @@ import com.google.inject.Provides;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
+import javax.imageio.ImageIO;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -21,6 +24,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.AsyncBufferedImage;
 
 @PluginDescriptor(
 	name = "Boss Readiness Score",
@@ -185,7 +189,7 @@ public class BossReadinessScorePlugin extends Plugin
 		});
 	}
 
-	private BufferedImage loadItemImage(GearItem item)
+	private AsyncBufferedImage loadItemImage(GearItem item)
 	{
 		if (item == null || item.getItemId() <= 0)
 		{
@@ -204,6 +208,18 @@ public class BossReadinessScorePlugin extends Plugin
 
 	private static BufferedImage createIcon()
 	{
+		try (InputStream stream = BossReadinessScorePlugin.class.getResourceAsStream("boss_readiness_icon.png"))
+		{
+			if (stream != null)
+			{
+				return ImageIO.read(stream);
+			}
+		}
+		catch (IOException ignored)
+		{
+			// Fall through to a generated fallback so the toolbar never breaks.
+		}
+
 		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D graphics = image.createGraphics();
 		graphics.setColor(new Color(33, 150, 243));

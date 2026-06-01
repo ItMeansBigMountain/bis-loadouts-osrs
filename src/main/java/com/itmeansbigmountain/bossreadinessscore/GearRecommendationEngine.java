@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -333,9 +334,9 @@ public final class GearRecommendationEngine
 	{
 		return new GearItem(slot, fallbackItemId(name), name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note);
 	}
-	private static int fallbackItemId(String name)
+	static int fallbackItemId(String name)
 	{
-		switch (name)
+		switch (name == null ? "" : name.toLowerCase(Locale.ROOT))
 		{
 			case "trident of the seas": return 11907;
 			case "trident of the swamp": return 12899;
