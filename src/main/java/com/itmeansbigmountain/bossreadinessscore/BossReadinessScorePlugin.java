@@ -44,7 +44,7 @@ public class BossReadinessScorePlugin extends Plugin
 	private ExecutorService apiExecutor;
 	private BossReadinessScorePanel panel;
 	private NavigationButton navButton;
-	private volatile String selectedBossName = "None - best overall for my stats";
+	private volatile String selectedBossName = "None";
 	private volatile CombatStyle selectedStyle = CombatStyle.AUTO;
 
 	@Override

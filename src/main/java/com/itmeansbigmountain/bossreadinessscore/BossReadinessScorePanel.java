@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -32,7 +33,9 @@ import net.runelite.client.ui.PluginPanel;
 
 public class BossReadinessScorePanel extends PluginPanel
 {
-	private static final String NONE_BOSS = "None - best overall for my stats";
+	private static final String NONE_BOSS = "None";
+	private static final int PANEL_WIDTH = 220;
+	private static final int TEXT_WIDTH = 198;
 
 	private final JPanel content = new JPanel();
 	private final JComboBox<String> bossSelector = new JComboBox<>();
@@ -40,9 +43,9 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final List<String> allBossSuggestions = new ArrayList<>();
 	private final Map<GearSlot, Integer> slotIndexes = new EnumMap<>(GearSlot.class);
 	private final JRadioButton autoStyle = new JRadioButton("Auto");
-	private final JRadioButton magicStyle = new JRadioButton("Mage only");
-	private final JRadioButton rangedStyle = new JRadioButton("Range only");
-	private final JRadioButton meleeStyle = new JRadioButton("Melee only");
+	private final JRadioButton magicStyle = new JRadioButton("Mage");
+	private final JRadioButton rangedStyle = new JRadioButton("Range");
+	private final JRadioButton meleeStyle = new JRadioButton("Melee");
 	private BiConsumer<String, CombatStyle> analyzeListener;
 	private boolean updatingBossSelector;
 	private SetupRecommendation currentRecommendation;
@@ -54,11 +57,13 @@ public class BossReadinessScorePanel extends PluginPanel
 		super(false);
 		setLayout(new BorderLayout());
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		content.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		content.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		content.setMaximumSize(new Dimension(PANEL_WIDTH, Integer.MAX_VALUE));
 		configureBossSelector();
 		configureStyleButtons();
 		JScrollPane scrollPane = new JScrollPane(content);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		add(scrollPane, BorderLayout.CENTER);
 	}
 
@@ -74,7 +79,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		currentStatus = status == null ? "" : status;
 		content.removeAll();
 		addControls(suggestions);
-		addMuted("Log in, pick a boss or leave None, choose a style, then hit Analyze.");
+		addMuted("Log in, pick boss/style, then Analyze.");
 		content.revalidate();
 		content.repaint();
 	}
@@ -119,7 +124,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		content.add(analyze);
 		if (currentStatus != null && !currentStatus.isEmpty())
 		{
-			addMuted(currentStatus);
+			addMuted(summarizeStatus(currentStatus));
 		}
 	}
 
@@ -173,11 +178,14 @@ public class BossReadinessScorePanel extends PluginPanel
 	private void addStyleControls()
 	{
 		addTitle("Setup style");
-		content.add(autoStyle);
-		content.add(magicStyle);
-		content.add(rangedStyle);
-		content.add(meleeStyle);
-		addMuted("Auto chooses the best style. Boss selected = boss weakness; None = strongest legal gear for your stats.");
+		JPanel styleGrid = new JPanel(new GridBagLayout());
+		styleGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
+		addStyleButton(styleGrid, autoStyle, 0, 0);
+		addStyleButton(styleGrid, magicStyle, 1, 0);
+		addStyleButton(styleGrid, rangedStyle, 0, 1);
+		addStyleButton(styleGrid, meleeStyle, 1, 1);
+		content.add(styleGrid);
+		addMuted("Auto = best style. None = best gear for stats.");
 	}
 
 	private void addSummary(SetupRecommendation recommendation, BossTarget target)
@@ -188,7 +196,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		addLine("Est. DPS", String.format("%.2f", recommendation.getEstimatedDps()));
 		if (target != null)
 		{
-			addMuted(target.getSource());
+			addMuted(summarizeStatus(target.getSource()));
 		}
 	}
 
@@ -211,7 +219,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		addSlot(grid, recommendation, GearSlot.FEET, 1, 4);
 		addSlot(grid, recommendation, GearSlot.RING, 2, 4);
 		content.add(grid);
-		addMuted("Use < and > to cycle 2nd/3rd best alternatives for each slot.");
+		addMuted("< > cycles alternatives.");
 	}
 
 	private void addSlot(JPanel grid, SetupRecommendation recommendation, GearSlot slot, int x, int y)
@@ -219,8 +227,9 @@ public class BossReadinessScorePanel extends PluginPanel
 		List<GearItem> alternatives = recommendation.getAlternativesForSlot(slot);
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
 		GearItem item = alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
-		JPanel cell = new JPanel(new BorderLayout(2, 2));
-		cell.setPreferredSize(new Dimension(88, 58));
+		JPanel cell = new JPanel(new BorderLayout(0, 0));
+		cell.setPreferredSize(new Dimension(66, 50));
+		cell.setMinimumSize(new Dimension(66, 50));
 		cell.setBorder(BorderFactory.createLineBorder(new Color(115, 110, 95), 1));
 		cell.setBackground(new Color(62, 58, 49));
 		JButton left = tinyButton("<");
@@ -229,17 +238,17 @@ public class BossReadinessScorePanel extends PluginPanel
 		right.setEnabled(alternatives.size() > 1);
 		left.addActionListener(event -> cycleSlot(slot, -1));
 		right.addActionListener(event -> cycleSlot(slot, 1));
-		JLabel label = new JLabel("<html><center><b>" + escape(slot.toString()) + "</b><br>" + escape(item == null ? "—" : item.getName()) + "</center></html>");
+		JLabel label = new JLabel("<html><center><b>" + escape(shortSlot(slot)) + "</b><br>" + escape(item == null ? "—" : compactItemName(item.getName())) + "</center></html>");
 		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setForeground(Color.WHITE);
-		label.setFont(label.getFont().deriveFont(10.0F));
+		label.setFont(label.getFont().deriveFont(8.5F));
 		cell.add(left, BorderLayout.WEST);
 		cell.add(label, BorderLayout.CENTER);
 		cell.add(right, BorderLayout.EAST);
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = x;
 		constraints.gridy = y;
-		constraints.insets = new Insets(4, 4, 4, 4);
+		constraints.insets = new Insets(1, 1, 1, 1);
 		grid.add(cell, constraints);
 	}
 
@@ -263,8 +272,9 @@ public class BossReadinessScorePanel extends PluginPanel
 	private JButton tinyButton(String text)
 	{
 		JButton button = new JButton(text);
-		button.setMargin(new Insets(0, 2, 0, 2));
-		button.setPreferredSize(new Dimension(18, 20));
+		button.setMargin(new Insets(0, 0, 0, 0));
+		button.setPreferredSize(new Dimension(12, 18));
+		button.setFont(button.getFont().deriveFont(8.0F));
 		return button;
 	}
 
@@ -282,6 +292,58 @@ public class BossReadinessScorePanel extends PluginPanel
 		int next = Math.floorMod(slotIndexes.getOrDefault(slot, 0) + delta, alternatives.size());
 		slotIndexes.put(slot, next);
 		updateRecommendation(currentRecommendation, currentTarget, currentStatus, allBossSuggestions);
+	}
+
+	private void addStyleButton(JPanel styleGrid, JRadioButton button, int x, int y)
+	{
+		button.setFont(button.getFont().deriveFont(10.5F));
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.gridx = x;
+		constraints.gridy = y;
+		constraints.anchor = GridBagConstraints.WEST;
+		constraints.insets = new Insets(0, 0, 0, 4);
+		styleGrid.add(button, constraints);
+	}
+
+	private static String shortSlot(GearSlot slot)
+	{
+		switch (slot)
+		{
+			case AMMUNITION: return "Ammo";
+			case WEAPON: return "Weapon";
+			case SHIELD: return "Shield";
+			default: return slot.toString();
+		}
+	}
+
+	private static String compactItemName(String name)
+	{
+		if (name == null || name.isEmpty())
+		{
+			return "—";
+		}
+		String compact = name
+			.replace("corrupted ", "corr. ")
+			.replace("perfected", "perf.")
+			.replace("necklace", "neck")
+			.replace("imbued ", "imb. ")
+			.replace("dragon ", "d. ")
+			.replace("ancestral", "anc.")
+			.replace("rune ", "r. ");
+		return compact.length() <= 18 ? compact : compact.substring(0, 16) + "…";
+	}
+
+	private static String summarizeStatus(String status)
+	{
+		if (status == null || status.isEmpty())
+		{
+			return "";
+		}
+		if (status.contains("No boss selected")) return "No boss: best gear for stats.";
+		if (status.contains("OSRS Wiki + GearScape")) return "Live boss data loaded.";
+		if (status.contains("Loaded")) return "Boss/equipment data loaded.";
+		if (status.contains("fallback")) return "Using fallback data.";
+		return status.length() <= 42 ? status : status.substring(0, 39) + "…";
 	}
 
 	private CombatStyle selectedStyle()
@@ -343,14 +405,14 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		JLabel label = new JLabel(text);
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-		label.setFont(label.getFont().deriveFont(Font.BOLD, 15.0F));
-		label.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+		label.setFont(label.getFont().deriveFont(Font.BOLD, 13.0F));
+		label.setBorder(BorderFactory.createEmptyBorder(4, 0, 3, 0));
 		content.add(label);
 	}
 
 	private void addLine(String label, String value)
 	{
-		JLabel row = new JLabel("<html><b>" + escape(label) + ":</b> " + escape(value) + "</html>");
+		JLabel row = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\"><b>" + escape(label) + ":</b> " + escape(value) + "</div></html>");
 		row.setAlignmentX(Component.LEFT_ALIGNMENT);
 		row.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 		content.add(row);
@@ -358,10 +420,11 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addMuted(String text)
 	{
-		JLabel label = new JLabel("<html>" + escape(text) + "</html>");
+		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\">" + escape(text) + "</div></html>");
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		label.setForeground(Color.GRAY);
-		label.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
+		label.setFont(label.getFont().deriveFont(10.0F));
+		label.setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));
 		content.add(label);
 	}
 
