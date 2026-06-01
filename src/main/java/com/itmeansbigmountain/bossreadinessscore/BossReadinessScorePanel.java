@@ -39,11 +39,11 @@ import net.runelite.client.ui.PluginPanel;
 public class BossReadinessScorePanel extends PluginPanel
 {
 	private static final String NONE_BOSS = "None";
-	private static final int PANEL_WIDTH = 220;
-	private static final int TEXT_WIDTH = 198;
-	private static final int CONTROL_WIDTH = 190;
-	private static final int EQUIPMENT_CELL_WIDTH = 60;
-	private static final int EQUIPMENT_CELL_HEIGHT = 68;
+	private static final int PANEL_WIDTH = 198;
+	private static final int TEXT_WIDTH = 174;
+	private static final int CONTROL_WIDTH = 168;
+	private static final int EQUIPMENT_CELL_WIDTH = 52;
+	private static final int EQUIPMENT_CELL_HEIGHT = 64;
 	private static final int ICON_SIZE = 32;
 
 	private final JPanel content = new JPanel();
@@ -52,9 +52,9 @@ public class BossReadinessScorePanel extends PluginPanel
 	private final List<String> allBossSuggestions = new ArrayList<>();
 	private final Map<GearSlot, Integer> slotIndexes = new EnumMap<>(GearSlot.class);
 	private final JRadioButton autoStyle = new JRadioButton("Auto");
-	private final JRadioButton magicStyle = new JRadioButton("Mage");
-	private final JRadioButton rangedStyle = new JRadioButton("Range");
-	private final JRadioButton meleeStyle = new JRadioButton("Melee");
+	private final JRadioButton magicStyle = new JRadioButton("Mag");
+	private final JRadioButton rangedStyle = new JRadioButton("Rng");
+	private final JRadioButton meleeStyle = new JRadioButton("Mel");
 	private BiConsumer<String, CombatStyle> analyzeListener;
 	private BiConsumer<GearItem, JLabel> itemIconProvider = (item, label) -> { };
 	private Consumer<GearItem> itemWikiOpener = item -> { };
@@ -68,7 +68,8 @@ public class BossReadinessScorePanel extends PluginPanel
 		super(false);
 		setLayout(new BorderLayout());
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		content.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		content.setBorder(BorderFactory.createEmptyBorder(4, 3, 4, 3));
+		content.setPreferredSize(new Dimension(PANEL_WIDTH, 0));
 		content.setMaximumSize(new Dimension(PANEL_WIDTH, Integer.MAX_VALUE));
 		configureBossSelector();
 		configureStyleButtons();
@@ -263,9 +264,11 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addSlot(JPanel grid, SetupRecommendation recommendation, GearSlot slot, int x, int y)
 	{
-		List<GearItem> alternatives = recommendation.getAlternativesForSlot(slot);
+		GearItem selectedWeapon = recommendation.getItem(GearSlot.WEAPON);
+		boolean disabledByTwoHander = slot == GearSlot.SHIELD && selectedWeapon != null && selectedWeapon.isTwoHanded();
+		List<GearItem> alternatives = disabledByTwoHander ? java.util.Collections.emptyList() : recommendation.getAlternativesForSlot(slot);
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
-		GearItem item = alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
+		GearItem item = disabledByTwoHander ? null : alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
 		JPanel cell = new JPanel(new BorderLayout(0, 0));
 		Dimension cellSize = new Dimension(EQUIPMENT_CELL_WIDTH, EQUIPMENT_CELL_HEIGHT);
 		cell.setPreferredSize(cellSize);
@@ -283,11 +286,12 @@ public class BossReadinessScorePanel extends PluginPanel
 		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 		JLabel icon = createIconLabel(item);
 		icon.setAlignmentX(Component.CENTER_ALIGNMENT);
-		JLabel label = new JLabel("<html><center><b>" + escape(shortSlot(slot)) + "</b><br>" + escape(item == null ? "—" : compactItemName(item.getName())) + "</center></html>");
+		String itemText = disabledByTwoHander ? "2H weapon" : item == null ? "—" : compactItemName(item.getName());
+		JLabel label = new JLabel("<html><center><b>" + escape(shortSlot(slot)) + "</b><br>" + escape(itemText) + "</center></html>");
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setForeground(Color.WHITE);
-		label.setFont(label.getFont().deriveFont(7.5F));
+		label.setFont(label.getFont().deriveFont(7.0F));
 		makeItemWikiClickable(center, item);
 		makeItemWikiClickable(icon, item);
 		makeItemWikiClickable(label, item);
@@ -368,8 +372,8 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		JButton button = new JButton(text);
 		button.setMargin(new Insets(0, 0, 0, 0));
-		button.setPreferredSize(new Dimension(10, 18));
-		button.setFont(button.getFont().deriveFont(7.0F));
+		button.setPreferredSize(new Dimension(8, 16));
+		button.setFont(button.getFont().deriveFont(6.5F));
 		return button;
 	}
 
@@ -500,9 +504,9 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addTitle(String text)
 	{
-		JLabel label = new JLabel(text);
+		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\">" + escape(text) + "</div></html>");
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-		label.setFont(label.getFont().deriveFont(Font.BOLD, 13.0F));
+		label.setFont(label.getFont().deriveFont(Font.BOLD, 12.0F));
 		label.setBorder(BorderFactory.createEmptyBorder(4, 0, 3, 0));
 		content.add(label);
 	}

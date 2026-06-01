@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,7 +28,7 @@ public final class GearRecommendationEngine
 
 	public static SetupRecommendation recommend(BossTarget boss, CombatStyle requestedStyle, BudgetTier budget, PlayerStats stats, List<GearItem> liveItems)
 	{
-		List<GearItem> candidateItems = liveItems == null || liveItems.isEmpty() ? ITEMS : liveItems;
+		List<GearItem> candidateItems = mergeCandidateItems(liveItems);
 		List<CombatStyle> styles = requestedStyle == CombatStyle.AUTO
 			? Arrays.asList(CombatStyle.MAGIC, CombatStyle.RANGED, CombatStyle.MELEE)
 			: Collections.singletonList(requestedStyle);
@@ -44,6 +45,27 @@ public final class GearRecommendationEngine
 
 		return new SetupRecommendation(best.getBossName(), best.getStyle(), best.getItems(), best.getSlotAlternatives(), best.getEstimatedDps(),
 			best.getHitChance(), best.getMaxHit(), best.getReadinessScore(), best.getWarnings(), alternatives);
+	}
+
+	private static List<GearItem> mergeCandidateItems(List<GearItem> liveItems)
+	{
+		if (liveItems == null || liveItems.isEmpty())
+		{
+			return ITEMS;
+		}
+		Map<String, GearItem> merged = new LinkedHashMap<>();
+		for (GearItem item : liveItems)
+		{
+			if (item != null)
+			{
+				merged.put(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
+			}
+		}
+		for (GearItem item : ITEMS)
+		{
+			merged.putIfAbsent(item.getSlot() + ":" + item.getName().toLowerCase(Locale.ROOT), item);
+		}
+		return new ArrayList<>(merged.values());
 	}
 
 	private static SetupRecommendation recommendSingleStyle(BossTarget boss, CombatStyle style, BudgetTier budget, PlayerStats stats, List<GearItem> items)
@@ -67,6 +89,13 @@ public final class GearRecommendationEngine
 				selected.put(slot, alternatives.get(0));
 				slotAlternatives.put(slot, alternatives);
 			}
+		}
+
+		GearItem weapon = selected.get(GearSlot.WEAPON);
+		if (weapon != null && weapon.isTwoHanded())
+		{
+			selected.remove(GearSlot.SHIELD);
+			slotAlternatives.remove(GearSlot.SHIELD);
 		}
 
 		addRequirementWarnings(style, stats, warnings);
@@ -264,6 +293,7 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.WEAPON, "trident of the swamp", magic, 0, 0, 0, 75, 0, 0, 32, 16, 2_500_000, "Strong practical Zulrah staff."));
 		items.add(item(GearSlot.WEAPON, "sanguinesti staff", magic, 0, 0, 0, 82, 0, 0, 40, 24, 85_000_000, "High-end sustain option."));
 		items.add(item(GearSlot.WEAPON, "eye of ayak", magic, 0, 0, 0, 90, 0, 0, 48, 30, 55_000_000, "GearScape-inspired high DPS option."));
+		items.add(item(GearSlot.WEAPON, "tumeken's shadow", magic, 0, 0, 0, 85, 0, 0, 75, 60, 1_400_000_000, "Two-handed OSRS magic megarares weapon."));
 		items.add(item(GearSlot.HEAD, "mystic hat", magic, 0, 0, 20, 40, 0, 0, 4, 0, 25_000, "Budget magic."));
 		items.add(item(GearSlot.HEAD, "ahrim's hood", magic, 0, 0, 70, 70, 0, 0, 6, 1, 500_000, "Midgame magic."));
 		items.add(item(GearSlot.HEAD, "ancestral hat", magic, 0, 0, 65, 75, 0, 0, 8, 3, 58_000_000, "BiS-style magic."));
@@ -313,6 +343,7 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.WEAPON, "abyssal whip", melee, 70, 70, 1, 0, 0, 0, 82, 82, 1_700_000, "Midgame melee."));
 		items.add(item(GearSlot.WEAPON, "osmumten's fang", melee, 82, 75, 1, 0, 0, 0, 105, 103, 18_000_000, "Bossing melee option."));
 		items.add(item(GearSlot.WEAPON, "noxious halberd", melee, 80, 80, 1, 0, 0, 0, 132, 142, 50_000_000, "High-end melee inspiration."));
+		items.add(item(GearSlot.WEAPON, "scythe of vitur", melee, 80, 90, 1, 0, 0, 0, 140, 148, 1_100_000_000, "Two-handed OSRS melee megarares weapon."));
 		items.add(item(GearSlot.HEAD, "helm of neitiznot", melee, 1, 1, 45, 0, 0, 0, 0, 3, 50_000, "Budget melee."));
 		items.add(item(GearSlot.HEAD, "neitiznot faceguard", melee, 1, 1, 70, 0, 0, 0, 0, 6, 20_000_000, "Strong melee helm."));
 		items.add(item(GearSlot.BODY, "fighter torso", melee, 1, 1, 40, 0, 0, 0, 0, 4, 0, "Free melee body."));
@@ -342,6 +373,7 @@ public final class GearRecommendationEngine
 			case "trident of the seas": return 11907;
 			case "trident of the swamp": return 12899;
 			case "sanguinesti staff": return 22323;
+			case "tumeken's shadow": return 27275;
 			case "mystic hat": return 4089;
 			case "ahrim's hood": return 4708;
 			case "ancestral hat": return 21018;
@@ -383,6 +415,7 @@ public final class GearRecommendationEngine
 			case "abyssal whip": return 4151;
 			case "osmumten's fang": return 26219;
 			case "noxious halberd": return 29796;
+			case "scythe of vitur": return 22325;
 			case "helm of neitiznot": return 10828;
 			case "neitiznot faceguard": return 24271;
 			case "fighter torso": return 10551;

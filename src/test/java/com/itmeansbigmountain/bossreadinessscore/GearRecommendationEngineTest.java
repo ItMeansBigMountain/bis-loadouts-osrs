@@ -98,8 +98,42 @@ public class GearRecommendationEngineTest
 		assertEquals(23971, GearRecommendationEngine.fallbackItemId("Crystal helm"));
 		assertEquals(23857, GearRecommendationEngine.fallbackItemId("corrupted bow (perfected)"));
 		assertEquals(28951, GearRecommendationEngine.fallbackItemId("dizana's quiver"));
+		assertEquals(27275, GearRecommendationEngine.fallbackItemId("Tumeken's shadow"));
+		assertEquals(20997, GearRecommendationEngine.fallbackItemId("Twisted bow"));
+		assertEquals(22325, GearRecommendationEngine.fallbackItemId("Scythe of vitur"));
 		assertEquals(26219, GearRecommendationEngine.fallbackItemId("Osmumten's fang"));
 		assertEquals(10828, GearRecommendationEngine.fallbackItemId("Helm of neitiznot"));
+	}
+
+	@Test
+	public void megararesAreRecommendedAndRemoveShieldWhenTwoHanded()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+
+		SetupRecommendation magic = GearRecommendationEngine.recommend(BossProfile.GENERAL_PVM, CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats);
+		assertEquals("tumeken's shadow", magic.getItem(GearSlot.WEAPON).getName());
+		assertTrue(magic.getItem(GearSlot.WEAPON).isTwoHanded());
+		assertFalse("2H weapon should not also equip a shield", magic.getItems().containsKey(GearSlot.SHIELD));
+
+		SetupRecommendation ranged = GearRecommendationEngine.recommend(BossProfile.GENERAL_PVM, CombatStyle.RANGED, BudgetTier.NO_LIMIT, stats);
+		assertEquals("twisted bow", ranged.getItem(GearSlot.WEAPON).getName());
+		assertTrue(ranged.getItem(GearSlot.WEAPON).isTwoHanded());
+		assertFalse("2H weapon should not also equip a shield", ranged.getItems().containsKey(GearSlot.SHIELD));
+	}
+
+	@Test
+	public void localOsrsItemsFillGapsWhenLiveApiIsStale()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+		java.util.List<GearItem> staleLiveItems = java.util.Collections.singletonList(
+			new GearItem(GearSlot.WEAPON, 11907, "trident of the seas", java.util.EnumSet.of(CombatStyle.MAGIC),
+				0, 0, 0, 75, 0, 0, 25, 10, 45_000, "stale live api")
+		);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			BossTarget.fromProfile(BossProfile.GENERAL_PVM), CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats, staleLiveItems);
+
+		assertEquals("tumeken's shadow", recommendation.getItem(GearSlot.WEAPON).getName());
 	}
 
 	@Test

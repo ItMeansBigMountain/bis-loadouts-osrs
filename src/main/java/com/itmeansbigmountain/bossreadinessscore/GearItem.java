@@ -21,6 +21,7 @@ public class GearItem
 	private final String note;
 	private final String iconBase64;
 	private final String wikiUrl;
+	private final boolean twoHanded;
 
 	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
@@ -43,6 +44,12 @@ public class GearItem
 	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64, String wikiUrl)
 	{
+		this(slot, itemId, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note, iconBase64, wikiUrl, isKnownTwoHanded(slot, name));
+	}
+
+	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64, String wikiUrl, boolean twoHanded)
+	{
 		this.slot = slot;
 		this.itemId = itemId;
 		this.name = name;
@@ -59,6 +66,7 @@ public class GearItem
 		this.note = note;
 		this.iconBase64 = iconBase64;
 		this.wikiUrl = wikiUrl == null || wikiUrl.trim().isEmpty() ? OsrsWikiApiClient.pageUrl(name) : wikiUrl;
+		this.twoHanded = twoHanded;
 	}
 
 	public GearSlot getSlot()
@@ -139,6 +147,29 @@ public class GearItem
 	public String getWikiUrl()
 	{
 		return wikiUrl;
+	}
+
+	public boolean isTwoHanded()
+	{
+		return twoHanded;
+	}
+
+	private static boolean isKnownTwoHanded(GearSlot slot, String name)
+	{
+		if (slot != GearSlot.WEAPON || name == null)
+		{
+			return false;
+		}
+		String normalized = name.toLowerCase(java.util.Locale.ROOT);
+		return normalized.contains("tumeken's shadow")
+			|| normalized.contains("twisted bow")
+			|| normalized.contains("bow of faerdhinen")
+			|| normalized.contains("toxic blowpipe")
+			|| normalized.contains("noxious halberd")
+			|| normalized.contains("scythe")
+			|| normalized.contains("halberd")
+			|| normalized.contains("longbow")
+			|| normalized.contains("shortbow");
 	}
 
 	public boolean supports(CombatStyle style)
