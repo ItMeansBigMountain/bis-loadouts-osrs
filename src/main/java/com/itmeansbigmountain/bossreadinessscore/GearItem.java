@@ -154,7 +154,7 @@ public class GearItem
 		return twoHanded;
 	}
 
-	private static boolean isKnownTwoHanded(GearSlot slot, String name)
+	static boolean isKnownTwoHanded(GearSlot slot, String name)
 	{
 		if (slot != GearSlot.WEAPON || name == null)
 		{

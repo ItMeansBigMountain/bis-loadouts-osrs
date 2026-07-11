@@ -80,7 +80,14 @@ public final class GearRecommendationEngine
 			return false;
 		}
 		String normalized = name.toLowerCase(Locale.ROOT);
-		return normalized.startsWith("corrupted ")
+		return normalized.contains("(bh)")
+			|| normalized.contains("(dmm)")
+			|| normalized.contains("bounty hunter")
+			|| normalized.contains("vesta's")
+			|| normalized.contains("statius's")
+			|| normalized.contains("morrigan's")
+			|| normalized.contains("zuriel's")
+			|| normalized.startsWith("corrupted ")
 			|| normalized.startsWith("attuned ")
 			|| normalized.startsWith("perfected ")
 			|| normalized.startsWith("basic bow")
@@ -136,7 +143,6 @@ public final class GearRecommendationEngine
 		if (weapon != null && weapon.isTwoHanded())
 		{
 			selected.remove(GearSlot.SHIELD);
-			slotAlternatives.remove(GearSlot.SHIELD);
 		}
 
 		addRequirementWarnings(style, stats, warnings);
@@ -351,6 +357,7 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.HANDS, "tormented bracelet", magic, 0, 0, 75, 75, 0, 0, 10, 5, 16_000_000, "High-impact magic glove."));
 		items.add(item(GearSlot.HANDS, "confliction gauntlets", magic, 0, 0, 1, 75, 0, 0, 20, 12, 80_000_000, "Current OSRS best-in-slot magic gloves; requires 90 Hitpoints in game."));
 		items.add(item(GearSlot.FEET, "eternal boots", magic, 0, 0, 75, 75, 0, 0, 8, 0, 5_000_000, "Magic boots."));
+		items.add(item(GearSlot.FEET, "aranea boots", EnumSet.of(CombatStyle.MAGIC, CombatStyle.RANGED), 0, 0, 1, 1, 1, 0, 6, 4, 1_500_000, "Current OSRS tribrid boots from Araxytes; no requirements, +5 magic, +6 ranged, +4 strength."));
 		items.add(item(GearSlot.RING, "magus ring", magic, 0, 0, 1, 75, 0, 0, 15, 2, 30_000_000, "High-end magic ring."));
 	}
 
@@ -436,6 +443,7 @@ public final class GearRecommendationEngine
 			case "tormented bracelet": return 19544;
 			case "confliction gauntlets": return 31106;
 			case "eternal boots": return 13235;
+			case "aranea boots": return 29806;
 			case "magus ring": return 28313;
 			case "rune crossbow": return 9185;
 			case "toxic blowpipe": return 12926;

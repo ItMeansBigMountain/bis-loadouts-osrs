@@ -254,7 +254,11 @@ public class BossReadinessScorePanel extends PluginPanel
 		gridWrapper.setMaximumSize(new Dimension(PANEL_WIDTH, grid.getPreferredSize().height));
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
-		addMuted("< > cycles alternatives.");
+		addMuted("< > cycles alternatives: strongest on the left, weaker to the right.");
+		if (currentTarget != null)
+		{
+			addMuted("Boss weakness: " + bossWeaknessText(currentTarget));
+		}
 	}
 
 	private void addSlot(JPanel grid, SetupRecommendation recommendation, GearSlot slot, int x, int y)
@@ -282,6 +286,10 @@ public class BossReadinessScorePanel extends PluginPanel
 		JLabel icon = createIconLabel(item);
 		icon.setAlignmentX(Component.CENTER_ALIGNMENT);
 		String itemText = disabledByTwoHander ? "2H weapon" : item == null ? "—" : compactItemName(item.getName());
+		if (slot == GearSlot.WEAPON && item != null)
+		{
+			itemText = (item.isTwoHanded() ? "2H " : "1H ") + itemText;
+		}
 		JLabel label = new JLabel("<html><center><b>" + escape(shortSlot(slot)) + "</b><br>" + escape(itemText) + "</center></html>");
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.CENTER);
@@ -397,6 +405,39 @@ public class BossReadinessScorePanel extends PluginPanel
 		int next = Math.floorMod(slotIndexes.getOrDefault(slot, 0) + delta, alternatives.size());
 		slotIndexes.put(slot, next);
 		updateRecommendation(currentRecommendation, currentTarget, currentStatus, allBossSuggestions);
+	}
+
+	private static String bossWeaknessText(BossTarget target)
+	{
+		int stab = target.getDefStab();
+		int slash = target.getDefSlash();
+		int crush = target.getDefCrush();
+		int magic = target.getDefMagic();
+		int ranged = target.getDefRanged();
+		int min = Math.min(Math.min(Math.min(stab, slash), Math.min(crush, magic)), ranged);
+		StringBuilder builder = new StringBuilder();
+		appendWeakness(builder, "Stab", stab, min);
+		appendWeakness(builder, "Slash", slash, min);
+		appendWeakness(builder, "Crush", crush, min);
+		appendWeakness(builder, "Magic", magic, min);
+		appendWeakness(builder, "Ranged", ranged, min);
+		if (builder.length() == 0 || min == 0 && stab == 0 && slash == 0 && crush == 0 && magic == 0 && ranged == 0)
+		{
+			return "unknown from this data source";
+		}
+		return builder.toString() + " (lowest defence)";
+	}
+
+	private static void appendWeakness(StringBuilder builder, String label, int value, int min)
+	{
+		if (value == min)
+		{
+			if (builder.length() > 0)
+			{
+				builder.append(" / ");
+			}
+			builder.append(label).append(" ").append(value);
+		}
 	}
 
 	private void addStyleButton(JPanel styleGrid, JRadioButton button, int x, int y)

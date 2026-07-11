@@ -391,32 +391,43 @@ public class BossDataService
 		return Optional.of(new GearItem(slot, itemId, name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
-			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl));
+			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl, booleanValue(obj, "two_handed", GearItem.isKnownTwoHanded(slot, name))));
 	}
 
 	private static Set<CombatStyle> stylesFor(JsonObject obj)
 	{
+		Set<CombatStyle> styles = EnumSet.noneOf(CombatStyle.class);
 		String style = stringValue(obj, "combat_style", "").toLowerCase(Locale.ROOT);
 		if (style.contains("magic"))
 		{
-			return EnumSet.of(CombatStyle.MAGIC);
+			styles.add(CombatStyle.MAGIC);
 		}
 		if (style.contains("ranged"))
 		{
-			return EnumSet.of(CombatStyle.RANGED);
+			styles.add(CombatStyle.RANGED);
 		}
-		if (style.contains("melee"))
+		if (style.contains("melee") || style.contains("stab") || style.contains("slash") || style.contains("crush"))
 		{
-			return EnumSet.of(CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH);
+			styles.add(CombatStyle.STAB);
+			styles.add(CombatStyle.SLASH);
+			styles.add(CombatStyle.CRUSH);
 		}
-		int magic = intValue(obj, "magic_bonus", 0) + intValue(obj, "magic_str", 0);
-		int ranged = intValue(obj, "ranged_bonus", 0) + intValue(obj, "ranged_str", 0);
-		int melee = Math.max(Math.max(intValue(obj, "stab_bonus", 0), intValue(obj, "slash_bonus", 0)), intValue(obj, "crush_bonus", 0)) + intValue(obj, "melee_str", 0);
-		int max = Math.max(melee, Math.max(magic, ranged));
-		if (max == magic && max > 0) return EnumSet.of(CombatStyle.MAGIC);
-		if (max == ranged && max > 0) return EnumSet.of(CombatStyle.RANGED);
-		if (max > 0) return EnumSet.of(CombatStyle.STAB, CombatStyle.SLASH, CombatStyle.CRUSH);
-		return EnumSet.noneOf(CombatStyle.class);
+
+		if (intValue(obj, "magic_bonus", 0) + intValue(obj, "magic_str", 0) > 0)
+		{
+			styles.add(CombatStyle.MAGIC);
+		}
+		if (intValue(obj, "ranged_bonus", 0) + intValue(obj, "ranged_str", 0) > 0)
+		{
+			styles.add(CombatStyle.RANGED);
+		}
+		if (Math.max(Math.max(intValue(obj, "stab_bonus", 0), intValue(obj, "slash_bonus", 0)), intValue(obj, "crush_bonus", 0)) + intValue(obj, "melee_str", 0) > 0)
+		{
+			styles.add(CombatStyle.STAB);
+			styles.add(CombatStyle.SLASH);
+			styles.add(CombatStyle.CRUSH);
+		}
+		return styles;
 	}
 
 	private static int attackBonusFor(Set<CombatStyle> styles, JsonObject obj)

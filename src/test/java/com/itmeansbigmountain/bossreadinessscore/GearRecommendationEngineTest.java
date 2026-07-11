@@ -103,6 +103,7 @@ public class GearRecommendationEngineTest
 		assertEquals(29591, GearRecommendationEngine.fallbackItemId("Scorching bow"));
 		assertEquals(29594, GearRecommendationEngine.fallbackItemId("Purging staff"));
 		assertEquals(31106, GearRecommendationEngine.fallbackItemId("Confliction gauntlets"));
+		assertEquals(29806, GearRecommendationEngine.fallbackItemId("Aranea boots"));
 		assertEquals(29589, GearRecommendationEngine.fallbackItemId("Emberlight"));
 		assertEquals(26374, GearRecommendationEngine.fallbackItemId("Zaryte crossbow"));
 		assertEquals(28338, GearRecommendationEngine.fallbackItemId("Soulreaper axe"));
@@ -142,6 +143,19 @@ public class GearRecommendationEngineTest
 	}
 
 	@Test
+	public void shieldAlternativesRemainAvailableWhenCyclingFromTwoHandedToOneHandedWeapon()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(BossProfile.GENERAL_PVM, CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats);
+
+		assertTrue(recommendation.getItem(GearSlot.WEAPON).isTwoHanded());
+		assertFalse(recommendation.getItems().containsKey(GearSlot.SHIELD));
+		assertTrue("one-handed weapon alternatives should still be available", recommendation.getAlternativesForSlot(GearSlot.WEAPON).stream().anyMatch(item -> !item.isTwoHanded()));
+		assertTrue("offhand alternatives should remain available for one-handed weapon cycling", recommendation.getAlternativesForSlot(GearSlot.SHIELD).stream().anyMatch(item -> item.getName().equals("elidinis' ward")));
+	}
+
+	@Test
 	public void localOsrsItemsFillGapsWhenLiveApiIsStale()
 	{
 		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
@@ -169,10 +183,15 @@ public class GearRecommendationEngineTest
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Corrupted staff (attuned)"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("basic halberd"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Deadman armour"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("statius's platebody (bh)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("zuriel's robe top (dmm)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("morrigan's leather body (bh)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("vesta's chainbody (bh)"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Trailblazer reloaded blowpipe ornament kit"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Leagues trophy"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Relic hunter body"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("confliction gauntlets"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("aranea boots"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("crystal bow"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("bow of faerdhinen"));
 	}
