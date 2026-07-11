@@ -164,7 +164,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		bossSelector.setPreferredSize(bossSelectorSize);
 		bossSelector.setMinimumSize(bossSelectorSize);
 		bossSelector.setMaximumSize(bossSelectorSize);
-		bossSelector.setSelectedItem(NONE_BOSS);
+		bossSelector.setSelectedItem("");
 		if (bossSelector.getEditor().getEditorComponent() instanceof JTextField)
 		{
 			JTextField editor = (JTextField) bossSelector.getEditor().getEditorComponent();
@@ -190,7 +190,6 @@ public class BossReadinessScorePanel extends PluginPanel
 	private void addBossSelector(List<String> suggestions)
 	{
 		allBossSuggestions.clear();
-		allBossSuggestions.add(NONE_BOSS);
 		if (suggestions != null)
 		{
 			for (String suggestion : suggestions)
@@ -201,7 +200,7 @@ public class BossReadinessScorePanel extends PluginPanel
 				}
 			}
 		}
-		filterBossOptions(selectedBoss(), false);
+		filterBossOptions(bossSearchText(), false);
 		bossSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
 		addCentered(bossSelector, CONTROL_WIDTH, 30);
 	}
@@ -218,7 +217,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		addStyleButton(styleGrid, rangedStyle, 0, 1);
 		addStyleButton(styleGrid, meleeStyle, 1, 1);
 		addCentered(styleGrid, CONTROL_WIDTH, 42);
-		addMuted("Auto = best style. None = best gear for stats.");
+		addMuted("Auto = best style. Leave boss blank for best gear by stats.");
 	}
 
 	private void addSummary(SetupRecommendation recommendation, BossTarget target)
@@ -623,9 +622,15 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private String selectedBoss()
 	{
+		String boss = bossSearchText();
+		return boss.isEmpty() ? NONE_BOSS : boss;
+	}
+
+	private String bossSearchText()
+	{
 		Object selected = bossSelector.getEditor().getItem();
 		String boss = selected == null ? "" : selected.toString().trim();
-		return boss.isEmpty() ? NONE_BOSS : boss;
+		return NONE_BOSS.equalsIgnoreCase(boss) ? "" : boss;
 	}
 
 	private void filterLater(String query)
@@ -639,18 +644,22 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void filterBossOptions(String query, boolean showPopup)
 	{
-		String text = query == null || query.trim().isEmpty() ? NONE_BOSS : query;
+		String text = query == null ? "" : query.trim();
+		if (NONE_BOSS.equalsIgnoreCase(text))
+		{
+			text = "";
+		}
 		String normalized = text.toLowerCase(Locale.ROOT).trim();
 		updatingBossSelector = true;
 		bossModel.removeAllElements();
-		if (!allBossSuggestions.contains(text))
+		if (!text.isEmpty() && !allBossSuggestions.contains(text))
 		{
 			bossModel.addElement(text);
 		}
 		int added = 0;
 		for (String suggestion : allBossSuggestions)
 		{
-			if (normalized.isEmpty() || suggestion.toLowerCase(Locale.ROOT).contains(normalized) || normalized.equals(NONE_BOSS.toLowerCase(Locale.ROOT)))
+			if (normalized.isEmpty() || suggestion.toLowerCase(Locale.ROOT).contains(normalized))
 			{
 				bossModel.addElement(suggestion);
 				added++;
