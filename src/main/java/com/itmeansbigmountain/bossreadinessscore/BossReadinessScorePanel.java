@@ -257,10 +257,10 @@ public class BossReadinessScorePanel extends PluginPanel
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
 		addWeaponSetToggle(recommendation);
-		addMuted("< > cycles the selected 1H/2H set: strongest on the left, weaker to the right.");
+		addInfoBlock("• Arrows cycle gear. Left is strongest.\n• 1H/2H switches weapon lists.");
 		if (currentTarget != null)
 		{
-			addMuted("Boss weakness: " + bossWeaknessText(currentTarget));
+			addBossDefenseGuide(currentTarget);
 		}
 	}
 
@@ -486,7 +486,26 @@ public class BossReadinessScorePanel extends PluginPanel
 		updateRecommendation(currentRecommendation, currentTarget, currentStatus, allBossSuggestions);
 	}
 
-	private static String bossWeaknessText(BossTarget target)
+	private void addBossDefenseGuide(BossTarget target)
+	{
+		List<DefenceValue> values = bossDefenceValues(target);
+		if (values.stream().allMatch(value -> value.value == 0))
+		{
+			addInfoBlock("Boss defenses\n• Unknown from this data source");
+			return;
+		}
+		values.sort(Comparator.comparingInt(value -> value.value));
+		StringBuilder text = new StringBuilder("Boss attack style guide");
+		for (int i = 0; i < values.size(); i++)
+		{
+			DefenceValue value = values.get(i);
+			text.append("\n• ").append(rankLabel(i, values.size())).append(": ")
+				.append(value.label).append(" def ").append(value.value);
+		}
+		addInfoBlock(text.toString());
+	}
+
+	private static List<DefenceValue> bossDefenceValues(BossTarget target)
 	{
 		List<DefenceValue> values = new ArrayList<>();
 		values.add(new DefenceValue("Stab", target.getDefStab()));
@@ -494,21 +513,28 @@ public class BossReadinessScorePanel extends PluginPanel
 		values.add(new DefenceValue("Crush", target.getDefCrush()));
 		values.add(new DefenceValue("Magic", target.getDefMagic()));
 		values.add(new DefenceValue("Ranged", target.getDefRanged()));
-		if (values.stream().allMatch(value -> value.value == 0))
+		return values;
+	}
+
+	private static String rankLabel(int index, int total)
+	{
+		if (index == 0)
 		{
-			return "unknown from this data source";
+			return "Weakest / best";
 		}
-		values.sort(Comparator.comparingInt(value -> value.value));
-		StringBuilder builder = new StringBuilder();
-		for (DefenceValue value : values)
+		if (index == 1)
 		{
-			if (builder.length() > 0)
-			{
-				builder.append(" > ");
-			}
-			builder.append(value.label).append(" ").append(value.value);
+			return "Good";
 		}
-		return builder.toString();
+		if (index == total - 1)
+		{
+			return "Strongest / avoid";
+		}
+		if (index == total - 2)
+		{
+			return "Strong";
+		}
+		return "Okay";
 	}
 
 	private static final class DefenceValue
@@ -651,13 +677,26 @@ public class BossReadinessScorePanel extends PluginPanel
 		addCentered(row, TEXT_WIDTH, row.getPreferredSize().height);
 	}
 
+	private void addInfoBlock(String text)
+	{
+		String html = "<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:left; line-height:1.25;\">"
+			+ escape(text).replace("\n", "<br>") + "</div></html>";
+		JLabel label = new JLabel(html);
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label.setHorizontalAlignment(JLabel.LEFT);
+		label.setForeground(new Color(190, 190, 180));
+		label.setFont(label.getFont().deriveFont(11.5F));
+		label.setBorder(BorderFactory.createEmptyBorder(5, 0, 7, 0));
+		addCentered(label, TEXT_WIDTH, label.getPreferredSize().height);
+	}
+
 	private void addMuted(String text)
 	{
 		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:center\">" + escape(text) + "</div></html>");
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.CENTER);
-		label.setForeground(Color.GRAY);
-		label.setFont(label.getFont().deriveFont(10.0F));
+		label.setForeground(new Color(170, 170, 160));
+		label.setFont(label.getFont().deriveFont(11.0F));
 		label.setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));
 		addCentered(label, TEXT_WIDTH, label.getPreferredSize().height);
 	}
