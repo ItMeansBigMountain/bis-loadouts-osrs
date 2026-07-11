@@ -187,11 +187,15 @@ public class GearRecommendationEngineTest
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("zuriel's robe top (dmm)"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("morrigan's leather body (bh)"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("vesta's chainbody (bh)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("the dogsword (dmm)"));
+		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("onyx fractured bolts (fractured archive)"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Trailblazer reloaded blowpipe ornament kit"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Leagues trophy"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Relic hunter body"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("confliction gauntlets"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("aranea boots"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("saradomin halo"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("swift blade"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("crystal bow"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("bow of faerdhinen"));
 	}

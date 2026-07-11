@@ -1,6 +1,8 @@
 package com.itmeansbigmountain.bossreadinessscore;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 public class GearItem
@@ -22,6 +24,7 @@ public class GearItem
 	private final String iconBase64;
 	private final String wikiUrl;
 	private final boolean twoHanded;
+	private final Set<Integer> compatibleAmmoIds;
 
 	public GearItem(GearSlot slot, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note)
@@ -50,6 +53,12 @@ public class GearItem
 	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
 		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64, String wikiUrl, boolean twoHanded)
 	{
+		this(slot, itemId, name, styles, attackReq, strengthReq, defenceReq, magicReq, rangedReq, prayerReq, attackBonus, strengthBonus, price, note, iconBase64, wikiUrl, twoHanded, Collections.emptySet());
+	}
+
+	public GearItem(GearSlot slot, int itemId, String name, Set<CombatStyle> styles, int attackReq, int strengthReq, int defenceReq,
+		int magicReq, int rangedReq, int prayerReq, int attackBonus, int strengthBonus, long price, String note, String iconBase64, String wikiUrl, boolean twoHanded, Set<Integer> compatibleAmmoIds)
+	{
 		this.slot = slot;
 		this.itemId = itemId;
 		this.name = name;
@@ -67,6 +76,7 @@ public class GearItem
 		this.iconBase64 = iconBase64;
 		this.wikiUrl = wikiUrl == null || wikiUrl.trim().isEmpty() ? OsrsWikiApiClient.pageUrl(name) : wikiUrl;
 		this.twoHanded = twoHanded;
+		this.compatibleAmmoIds = compatibleAmmoIds == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(compatibleAmmoIds));
 	}
 
 	public GearSlot getSlot()
@@ -152,6 +162,21 @@ public class GearItem
 	public boolean isTwoHanded()
 	{
 		return twoHanded;
+	}
+
+	public boolean isOneHanded()
+	{
+		return slot == GearSlot.WEAPON && !twoHanded;
+	}
+
+	public Set<Integer> getCompatibleAmmoIds()
+	{
+		return compatibleAmmoIds;
+	}
+
+	public boolean acceptsAmmo(GearItem ammo)
+	{
+		return ammo != null && (compatibleAmmoIds.isEmpty() || compatibleAmmoIds.contains(ammo.getItemId()));
 	}
 
 	static boolean isKnownTwoHanded(GearSlot slot, String name)

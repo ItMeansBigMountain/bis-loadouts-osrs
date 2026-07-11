@@ -83,6 +83,9 @@ public final class GearRecommendationEngine
 		return normalized.contains("(bh)")
 			|| normalized.contains("(dmm)")
 			|| normalized.contains("bounty hunter")
+			|| normalized.contains("fractured archive")
+			|| normalized.contains("dogsword")
+			|| normalized.contains("thunder khopesh")
 			|| normalized.contains("vesta's")
 			|| normalized.contains("statius's")
 			|| normalized.contains("morrigan's")
@@ -140,6 +143,10 @@ public final class GearRecommendationEngine
 		}
 
 		GearItem weapon = selected.get(GearSlot.WEAPON);
+		if (weapon != null)
+		{
+			filterAmmoForWeapon(selected, slotAlternatives, weapon);
+		}
 		if (weapon != null && weapon.isTwoHanded())
 		{
 			selected.remove(GearSlot.SHIELD);
@@ -161,6 +168,26 @@ public final class GearRecommendationEngine
 		int readiness = calculateReadiness(boss, style, stats, selected, warnings);
 
 		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, readiness, warnings, Collections.emptyList());
+	}
+
+	private static void filterAmmoForWeapon(Map<GearSlot, GearItem> selected, Map<GearSlot, List<GearItem>> slotAlternatives, GearItem weapon)
+	{
+		List<GearItem> ammoAlternatives = slotAlternatives.get(GearSlot.AMMUNITION);
+		if (ammoAlternatives == null || ammoAlternatives.isEmpty() || weapon.getCompatibleAmmoIds().isEmpty())
+		{
+			return;
+		}
+		List<GearItem> compatible = ammoAlternatives.stream()
+			.filter(weapon::acceptsAmmo)
+			.collect(Collectors.toList());
+		if (compatible.isEmpty())
+		{
+			selected.remove(GearSlot.AMMUNITION);
+			slotAlternatives.remove(GearSlot.AMMUNITION);
+			return;
+		}
+		selected.put(GearSlot.AMMUNITION, compatible.get(0));
+		slotAlternatives.put(GearSlot.AMMUNITION, compatible);
 	}
 
 	private static CombatStyle displayStyle(CombatStyle style, BossTarget boss)

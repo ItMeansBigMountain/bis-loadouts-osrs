@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -391,7 +392,8 @@ public class BossDataService
 		return Optional.of(new GearItem(slot, itemId, name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
-			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl, booleanValue(obj, "two_handed", GearItem.isKnownTwoHanded(slot, name))));
+			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl,
+			booleanValue(obj, "two_handed", GearItem.isKnownTwoHanded(slot, name)), ammoIdsFor(obj)));
 	}
 
 	private static Set<CombatStyle> stylesFor(JsonObject obj)
@@ -442,6 +444,24 @@ public class BossDataService
 		if (styles.contains(CombatStyle.MAGIC) && styles.size() == 1) return intValue(obj, "magic_str", 0);
 		if (styles.contains(CombatStyle.RANGED) && styles.size() == 1) return Math.max(intValue(obj, "ranged_str", 0), intValue(obj, "ranged_bonus", 0) / 2);
 		return intValue(obj, "melee_str", 0);
+	}
+
+	private static Set<Integer> ammoIdsFor(JsonObject obj)
+	{
+		JsonElement value = obj.get("ammunition");
+		if (value == null || value.isJsonNull() || !value.isJsonArray())
+		{
+			return Collections.emptySet();
+		}
+		Set<Integer> ids = new HashSet<>();
+		for (JsonElement element : value.getAsJsonArray())
+		{
+			if (!element.isJsonNull())
+			{
+				ids.add(element.getAsInt());
+			}
+		}
+		return ids;
 	}
 
 	private JsonObject getJson(String url) throws IOException, InterruptedException

@@ -12,6 +12,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,6 +63,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private SetupRecommendation currentRecommendation;
 	private BossTarget currentTarget;
 	private String currentStatus = "Loading boss/equipment data...";
+	private Boolean weaponTwoHandedMode;
 
 	public BossReadinessScorePanel()
 	{
@@ -254,7 +256,8 @@ public class BossReadinessScorePanel extends PluginPanel
 		gridWrapper.setMaximumSize(new Dimension(PANEL_WIDTH, grid.getPreferredSize().height));
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
-		addMuted("< > cycles alternatives: strongest on the left, weaker to the right.");
+		addWeaponSetToggle(recommendation);
+		addMuted("< > cycles the selected 1H/2H set: strongest on the left, weaker to the right.");
 		if (currentTarget != null)
 		{
 			addMuted("Boss weakness: " + bossWeaknessText(currentTarget));
@@ -265,7 +268,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		GearItem selectedWeapon = displayedWeapon(recommendation);
 		boolean disabledByTwoHander = slot == GearSlot.SHIELD && selectedWeapon != null && selectedWeapon.isTwoHanded();
-		List<GearItem> alternatives = disabledByTwoHander ? java.util.Collections.emptyList() : recommendation.getAlternativesForSlot(slot);
+		List<GearItem> alternatives = disabledByTwoHander ? java.util.Collections.emptyList() : displayedAlternatives(recommendation, slot, selectedWeapon);
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
 		GearItem item = disabledByTwoHander ? null : alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
 		JPanel cell = new JPanel(new BorderLayout(0, 0));
@@ -382,7 +385,7 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private GearItem displayedWeapon(SetupRecommendation recommendation)
 	{
-		List<GearItem> weaponAlternatives = recommendation.getAlternativesForSlot(GearSlot.WEAPON);
+		List<GearItem> weaponAlternatives = displayedWeaponAlternatives(recommendation);
 		if (weaponAlternatives.isEmpty())
 		{
 			return recommendation.getItem(GearSlot.WEAPON);
@@ -391,13 +394,89 @@ public class BossReadinessScorePanel extends PluginPanel
 		return weaponAlternatives.get(index);
 	}
 
+	private List<GearItem> displayedAlternatives(SetupRecommendation recommendation, GearSlot slot, GearItem selectedWeapon)
+	{
+		List<GearItem> alternatives = slot == GearSlot.WEAPON
+			? displayedWeaponAlternatives(recommendation)
+			: recommendation.getAlternativesForSlot(slot);
+		if (slot == GearSlot.AMMUNITION && selectedWeapon != null && !selectedWeapon.getCompatibleAmmoIds().isEmpty())
+		{
+			List<GearItem> compatible = new ArrayList<>();
+			for (GearItem item : alternatives)
+			{
+				if (selectedWeapon.acceptsAmmo(item))
+				{
+					compatible.add(item);
+				}
+			}
+			return compatible;
+		}
+		return alternatives;
+	}
+
+	private List<GearItem> displayedWeaponAlternatives(SetupRecommendation recommendation)
+	{
+		List<GearItem> all = recommendation.getAlternativesForSlot(GearSlot.WEAPON);
+		if (all.isEmpty())
+		{
+			return all;
+		}
+		if (weaponTwoHandedMode == null || all.stream().noneMatch(item -> item.isTwoHanded() == weaponTwoHandedMode))
+		{
+			GearItem selected = recommendation.getItem(GearSlot.WEAPON);
+			weaponTwoHandedMode = selected == null || selected.isTwoHanded();
+		}
+		List<GearItem> filtered = new ArrayList<>();
+		for (GearItem item : all)
+		{
+			if (item.isTwoHanded() == weaponTwoHandedMode)
+			{
+				filtered.add(item);
+			}
+		}
+		return filtered.isEmpty() ? all : filtered;
+	}
+
+	private void addWeaponSetToggle(SetupRecommendation recommendation)
+	{
+		List<GearItem> all = recommendation.getAlternativesForSlot(GearSlot.WEAPON);
+		boolean hasOneHanded = all.stream().anyMatch(item -> !item.isTwoHanded());
+		boolean hasTwoHanded = all.stream().anyMatch(GearItem::isTwoHanded);
+		if (!hasOneHanded || !hasTwoHanded)
+		{
+			return;
+		}
+		JPanel toggle = new JPanel(new GridBagLayout());
+		toggle.setOpaque(false);
+		JButton oneHanded = tinyButton("1H");
+		JButton twoHanded = tinyButton("2H");
+		oneHanded.setPreferredSize(new Dimension(34, 18));
+		twoHanded.setPreferredSize(new Dimension(34, 18));
+		oneHanded.setEnabled(Boolean.TRUE.equals(weaponTwoHandedMode));
+		twoHanded.setEnabled(!Boolean.TRUE.equals(weaponTwoHandedMode));
+		oneHanded.addActionListener(event -> switchWeaponSet(false));
+		twoHanded.addActionListener(event -> switchWeaponSet(true));
+		toggle.add(oneHanded);
+		toggle.add(twoHanded);
+		addCentered(toggle, CONTROL_WIDTH, 20);
+	}
+
+	private void switchWeaponSet(boolean twoHanded)
+	{
+		weaponTwoHandedMode = twoHanded;
+		slotIndexes.put(GearSlot.WEAPON, 0);
+		slotIndexes.put(GearSlot.SHIELD, 0);
+		slotIndexes.put(GearSlot.AMMUNITION, 0);
+		updateRecommendation(currentRecommendation, currentTarget, currentStatus, allBossSuggestions);
+	}
+
 	private void cycleSlot(GearSlot slot, int delta)
 	{
 		if (currentRecommendation == null)
 		{
 			return;
 		}
-		List<GearItem> alternatives = currentRecommendation.getAlternativesForSlot(slot);
+		List<GearItem> alternatives = displayedAlternatives(currentRecommendation, slot, displayedWeapon(currentRecommendation));
 		if (alternatives.size() <= 1)
 		{
 			return;
@@ -409,34 +488,38 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private static String bossWeaknessText(BossTarget target)
 	{
-		int stab = target.getDefStab();
-		int slash = target.getDefSlash();
-		int crush = target.getDefCrush();
-		int magic = target.getDefMagic();
-		int ranged = target.getDefRanged();
-		int min = Math.min(Math.min(Math.min(stab, slash), Math.min(crush, magic)), ranged);
-		StringBuilder builder = new StringBuilder();
-		appendWeakness(builder, "Stab", stab, min);
-		appendWeakness(builder, "Slash", slash, min);
-		appendWeakness(builder, "Crush", crush, min);
-		appendWeakness(builder, "Magic", magic, min);
-		appendWeakness(builder, "Ranged", ranged, min);
-		if (builder.length() == 0 || min == 0 && stab == 0 && slash == 0 && crush == 0 && magic == 0 && ranged == 0)
+		List<DefenceValue> values = new ArrayList<>();
+		values.add(new DefenceValue("Stab", target.getDefStab()));
+		values.add(new DefenceValue("Slash", target.getDefSlash()));
+		values.add(new DefenceValue("Crush", target.getDefCrush()));
+		values.add(new DefenceValue("Magic", target.getDefMagic()));
+		values.add(new DefenceValue("Ranged", target.getDefRanged()));
+		if (values.stream().allMatch(value -> value.value == 0))
 		{
 			return "unknown from this data source";
 		}
-		return builder.toString() + " (lowest defence)";
-	}
-
-	private static void appendWeakness(StringBuilder builder, String label, int value, int min)
-	{
-		if (value == min)
+		values.sort(Comparator.comparingInt(value -> value.value));
+		StringBuilder builder = new StringBuilder();
+		for (DefenceValue value : values)
 		{
 			if (builder.length() > 0)
 			{
-				builder.append(" / ");
+				builder.append(" > ");
 			}
-			builder.append(label).append(" ").append(value);
+			builder.append(value.label).append(" ").append(value.value);
+		}
+		return builder.toString();
+	}
+
+	private static final class DefenceValue
+	{
+		private final String label;
+		private final int value;
+
+		private DefenceValue(String label, int value)
+		{
+			this.label = label;
+			this.value = value;
 		}
 	}
 
