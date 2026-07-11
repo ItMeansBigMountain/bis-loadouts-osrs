@@ -173,7 +173,7 @@ public final class GearRecommendationEngine
 	private static void filterAmmoForWeapon(Map<GearSlot, GearItem> selected, Map<GearSlot, List<GearItem>> slotAlternatives, GearItem weapon)
 	{
 		List<GearItem> ammoAlternatives = slotAlternatives.get(GearSlot.AMMUNITION);
-		if (ammoAlternatives == null || ammoAlternatives.isEmpty() || weapon.getCompatibleAmmoIds().isEmpty())
+		if (ammoAlternatives == null || ammoAlternatives.isEmpty())
 		{
 			return;
 		}

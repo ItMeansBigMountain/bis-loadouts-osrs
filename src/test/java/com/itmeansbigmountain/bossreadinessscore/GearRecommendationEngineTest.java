@@ -201,6 +201,27 @@ public class GearRecommendationEngineTest
 	}
 
 	@Test
+	public void rangedWeaponFallbackAmmoCompatibilityUsesWeaponType()
+	{
+		java.util.Set<CombatStyle> ranged = java.util.EnumSet.of(CombatStyle.RANGED);
+		GearItem bow = new GearItem(GearSlot.WEAPON, 20997, "twisted bow", ranged, 0, 0, 1, 0, 75, 0, 70, 20, 1_000_000_000, "wiki");
+		GearItem crossbow = new GearItem(GearSlot.WEAPON, 26374, "zaryte crossbow", ranged, 0, 0, 1, 0, 80, 0, 110, 0, 300_000_000, "wiki");
+		GearItem blowpipe = new GearItem(GearSlot.WEAPON, 12926, "toxic blowpipe", ranged, 0, 0, 1, 0, 75, 0, 30, 20, 2_000_000, "wiki");
+		GearItem bowfa = new GearItem(GearSlot.WEAPON, 25862, "bow of faerdhinen", ranged, 0, 0, 70, 0, 80, 0, 128, 106, 130_000_000, "wiki");
+		GearItem arrow = new GearItem(GearSlot.AMMUNITION, 11212, "dragon arrow", ranged, 0, 0, 1, 0, 60, 0, 0, 60, 2_000, "wiki");
+		GearItem bolt = new GearItem(GearSlot.AMMUNITION, 21944, "ruby dragon bolts (e)", ranged, 0, 0, 1, 0, 64, 0, 0, 122, 3_000, "wiki");
+		GearItem dart = new GearItem(GearSlot.AMMUNITION, 11230, "dragon dart", ranged, 0, 0, 1, 0, 60, 0, 0, 35, 1_000, "wiki");
+
+		assertTrue(bow.acceptsAmmo(arrow));
+		assertFalse(bow.acceptsAmmo(bolt));
+		assertTrue(crossbow.acceptsAmmo(bolt));
+		assertFalse(crossbow.acceptsAmmo(arrow));
+		assertTrue(blowpipe.acceptsAmmo(dart));
+		assertFalse(blowpipe.acceptsAmmo(arrow));
+		assertFalse("Bowfa is self-contained and should not show generic arrows", bowfa.acceptsAmmo(arrow));
+	}
+
+	@Test
 	public void recommendedItemsUseOldSchoolWikiLinksAndCanonicalItemNames()
 	{
 		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);

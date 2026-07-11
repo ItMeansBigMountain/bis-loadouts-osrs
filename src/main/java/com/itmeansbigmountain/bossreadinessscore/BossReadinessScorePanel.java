@@ -399,7 +399,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		List<GearItem> alternatives = slot == GearSlot.WEAPON
 			? displayedWeaponAlternatives(recommendation)
 			: recommendation.getAlternativesForSlot(slot);
-		if (slot == GearSlot.AMMUNITION && selectedWeapon != null && !selectedWeapon.getCompatibleAmmoIds().isEmpty())
+		if (slot == GearSlot.AMMUNITION && selectedWeapon != null)
 		{
 			List<GearItem> compatible = new ArrayList<>();
 			for (GearItem item : alternatives)

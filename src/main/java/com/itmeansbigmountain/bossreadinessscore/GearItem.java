@@ -176,7 +176,41 @@ public class GearItem
 
 	public boolean acceptsAmmo(GearItem ammo)
 	{
-		return ammo != null && (compatibleAmmoIds.isEmpty() || compatibleAmmoIds.contains(ammo.getItemId()));
+		if (ammo == null)
+		{
+			return false;
+		}
+		if (!compatibleAmmoIds.isEmpty())
+		{
+			return compatibleAmmoIds.contains(ammo.getItemId());
+		}
+		String weaponName = name == null ? "" : name.toLowerCase(java.util.Locale.ROOT);
+		String ammoName = ammo.getName() == null ? "" : ammo.getName().toLowerCase(java.util.Locale.ROOT);
+		if (isSelfContainedRangedWeapon(weaponName))
+		{
+			return false;
+		}
+		if (weaponName.contains("crossbow"))
+		{
+			return ammoName.contains("bolt") || ammoName.equals("bolt rack");
+		}
+		if (weaponName.contains("blowpipe"))
+		{
+			return ammoName.contains("dart");
+		}
+		if ((weaponName.contains(" bow") || weaponName.endsWith("bow")) && !weaponName.contains("crossbow"))
+		{
+			return ammoName.contains("arrow");
+		}
+		return true;
+	}
+
+	private static boolean isSelfContainedRangedWeapon(String weaponName)
+	{
+		return weaponName.contains("bow of faerdhinen")
+			|| weaponName.contains("crystal bow")
+			|| weaponName.contains("webweaver bow")
+			|| weaponName.contains("craw's bow");
 	}
 
 	static boolean isKnownTwoHanded(GearSlot slot, String name)
