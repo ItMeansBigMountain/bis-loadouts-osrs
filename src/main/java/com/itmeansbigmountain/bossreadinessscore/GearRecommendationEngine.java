@@ -133,7 +133,6 @@ public final class GearRecommendationEngine
 				.filter(item -> item.getPrice() <= budget.getMaxItemPrice())
 				.filter(item -> item.meetsRequirements(stats))
 				.sorted(Comparator.comparingInt(GearItem::scoreValue).reversed())
-				.limit(12)
 				.collect(Collectors.toList());
 			if (!alternatives.isEmpty())
 			{
@@ -183,11 +182,9 @@ public final class GearRecommendationEngine
 		if (compatible.isEmpty())
 		{
 			selected.remove(GearSlot.AMMUNITION);
-			slotAlternatives.remove(GearSlot.AMMUNITION);
 			return;
 		}
 		selected.put(GearSlot.AMMUNITION, compatible.get(0));
-		slotAlternatives.put(GearSlot.AMMUNITION, compatible);
 	}
 
 	private static CombatStyle displayStyle(CombatStyle style, BossTarget boss)
@@ -411,8 +408,18 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.HANDS, "zaryte vambraces", ranged, 0, 0, 80, 0, 80, 0, 18, 2, 80_000_000, "High-end ranged gloves."));
 		items.add(item(GearSlot.FEET, "pegasian boots", ranged, 0, 0, 75, 0, 75, 0, 12, 0, 35_000_000, "Ranged boots."));
 		items.add(item(GearSlot.RING, "archers ring (i)", ranged, 0, 0, 1, 0, 70, 0, 8, 0, 4_000_000, "Ranged ring."));
-		items.add(item(GearSlot.AMMUNITION, "dragon arrow", ranged, 0, 0, 1, 0, 60, 0, 0, 60, 2_000, "OSRS Wiki-backed ranged ammo."));
-		items.add(item(GearSlot.AMMUNITION, "dizana's quiver", ranged, 0, 0, 1, 0, 75, 0, 18, 4, 0, "Fortis Colosseum ranged cape/ammo-slot upgrade."));
+		items.add(item(GearSlot.AMMUNITION, "dragon arrow", ranged, 0, 0, 1, 0, 60, 0, 0, 60, 2_000, "Best standard arrow for dark/twisted/venator/scorching bows."));
+		items.add(item(GearSlot.AMMUNITION, "amethyst arrow", ranged, 0, 0, 1, 0, 50, 0, 0, 55, 140, "High-tier arrow for magic+ bows."));
+		items.add(item(GearSlot.AMMUNITION, "rune arrow", ranged, 0, 0, 1, 0, 40, 0, 0, 49, 50, "Yew+ bow arrow fallback."));
+		items.add(item(GearSlot.AMMUNITION, "dragon bolts", ranged, 0, 0, 1, 0, 64, 0, 0, 122, 2_800, "Highest-strength crossbow bolts."));
+		items.add(item(GearSlot.AMMUNITION, "ruby dragon bolts (e)", ranged, 0, 0, 1, 0, 64, 0, 0, 122, 3_200, "High-HP boss crossbow bolts."));
+		items.add(item(GearSlot.AMMUNITION, "diamond dragon bolts (e)", ranged, 0, 0, 1, 0, 64, 0, 0, 122, 2_800, "High-defence boss crossbow bolts."));
+		items.add(item(GearSlot.AMMUNITION, "runite bolts", ranged, 0, 0, 1, 0, 61, 0, 0, 115, 90, "Strong crossbow bolt fallback."));
+		items.add(item(GearSlot.AMMUNITION, "amethyst broad bolts", ranged, 0, 0, 1, 0, 61, 0, 0, 115, 200, "Strong broad-bolt fallback."));
+		items.add(item(GearSlot.AMMUNITION, "dragon dart", ranged, 0, 0, 1, 0, 60, 0, 0, 35, 1_250, "Best toxic blowpipe dart."));
+		items.add(item(GearSlot.AMMUNITION, "amethyst dart", ranged, 0, 0, 1, 0, 50, 0, 0, 28, 200, "High-tier blowpipe dart."));
+		items.add(item(GearSlot.AMMUNITION, "rune dart", ranged, 0, 0, 1, 0, 40, 0, 0, 26, 190, "Strong blowpipe dart fallback."));
+		items.add(item(GearSlot.AMMUNITION, "dizana's quiver", ranged, 0, 0, 1, 0, 75, 0, 18, 4, 0, "Fortis Colosseum ammo-slot upgrade; not weapon ammunition."));
 	}
 
 	private static void addMelee(List<GearItem> items)
@@ -497,6 +504,16 @@ public final class GearRecommendationEngine
 			case "pegasian boots": return 13237;
 			case "archers ring (i)": return 11771;
 			case "dragon arrow": return 11212;
+			case "amethyst arrow": return 21326;
+			case "rune arrow": return 892;
+			case "dragon bolts": return 21905;
+			case "ruby dragon bolts (e)": return 21944;
+			case "diamond dragon bolts (e)": return 21946;
+			case "runite bolts": return 9144;
+			case "amethyst broad bolts": return 21316;
+			case "dragon dart": return 11230;
+			case "amethyst dart": return 25849;
+			case "rune dart": return 811;
 			case "dragon scimitar": return 4587;
 			case "abyssal whip": return 4151;
 			case "osmumten's fang": return 26219;

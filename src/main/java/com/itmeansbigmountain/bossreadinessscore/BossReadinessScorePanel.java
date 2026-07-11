@@ -270,7 +270,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		boolean disabledByTwoHander = slot == GearSlot.SHIELD && selectedWeapon != null && selectedWeapon.isTwoHanded();
 		List<GearItem> alternatives = disabledByTwoHander ? java.util.Collections.emptyList() : displayedAlternatives(recommendation, slot, selectedWeapon);
 		int index = Math.max(0, Math.min(slotIndexes.getOrDefault(slot, 0), Math.max(0, alternatives.size() - 1)));
-		GearItem item = disabledByTwoHander ? null : alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
+		GearItem item = disabledByTwoHander ? null : alternatives.isEmpty() && slot == GearSlot.AMMUNITION && selectedWeapon != null ? null : alternatives.isEmpty() ? recommendation.getItem(slot) : alternatives.get(index);
 		JPanel cell = new JPanel(new BorderLayout(0, 0));
 		Dimension cellSize = new Dimension(EQUIPMENT_CELL_WIDTH, EQUIPMENT_CELL_HEIGHT);
 		cell.setPreferredSize(cellSize);

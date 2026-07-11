@@ -98,6 +98,8 @@ public class GearRecommendationEngineTest
 		assertEquals(23971, GearRecommendationEngine.fallbackItemId("Crystal helm"));
 		assertEquals(23857, GearRecommendationEngine.fallbackItemId("corrupted bow (perfected)"));
 		assertEquals(28951, GearRecommendationEngine.fallbackItemId("dizana's quiver"));
+		assertEquals(21944, GearRecommendationEngine.fallbackItemId("ruby dragon bolts (e)"));
+		assertEquals(11230, GearRecommendationEngine.fallbackItemId("dragon dart"));
 		assertEquals(27275, GearRecommendationEngine.fallbackItemId("Tumeken's shadow"));
 		assertEquals(20997, GearRecommendationEngine.fallbackItemId("Twisted bow"));
 		assertEquals(29591, GearRecommendationEngine.fallbackItemId("Scorching bow"));
@@ -219,6 +221,21 @@ public class GearRecommendationEngineTest
 		assertTrue(blowpipe.acceptsAmmo(dart));
 		assertFalse(blowpipe.acceptsAmmo(arrow));
 		assertFalse("Bowfa is self-contained and should not show generic arrows", bowfa.acceptsAmmo(arrow));
+	}
+
+	@Test
+	public void rangedRecommendationsIncludeAmmoCompatibleWithWeaponType()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(BossProfile.GENERAL_PVM, CombatStyle.RANGED, BudgetTier.NO_LIMIT, stats);
+		GearItem weapon = recommendation.getItem(GearSlot.WEAPON);
+		GearItem ammo = recommendation.getItem(GearSlot.AMMUNITION);
+
+		assertTrue("Ranged recommendation should include an ammo item when the selected weapon needs ammo", ammo == null || weapon.acceptsAmmo(ammo));
+		assertTrue("Arrow alternatives should be available for bow-style weapon cycling", recommendation.getAlternativesForSlot(GearSlot.AMMUNITION).stream().anyMatch(item -> item.getName().contains("arrow")));
+		assertTrue("Bolt alternatives should be available for crossbow-style weapon cycling", recommendation.getAlternativesForSlot(GearSlot.AMMUNITION).stream().anyMatch(item -> item.getName().contains("bolt")));
+		assertTrue("Dart alternatives should be available for blowpipe-style weapon cycling", recommendation.getAlternativesForSlot(GearSlot.AMMUNITION).stream().anyMatch(item -> item.getName().contains("dart")));
 	}
 
 	@Test
