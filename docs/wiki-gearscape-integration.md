@@ -12,6 +12,7 @@ The plugin sets a descriptive `User-Agent` and uses public read-only GET request
 - GearScape boss detail: `https://api.gearscape.net/api/monster/id/<npc_id>`
 - GearScape equipment data: `https://api.gearscape.net/api/equipment/all`
 - GearScape weapon data: `https://api.gearscape.net/api/weapon/all`
+- OSRS Wiki real-time price mapping: `https://prices.runescape.wiki/api/v1/osrs/mapping`
 
 ## Why both sources are used
 
@@ -29,11 +30,13 @@ The built-in enum boss profiles remain only as fallbacks and quick presets. The 
 
 1. Start with local presets so the panel still works offline.
 2. In the background, load and merge the GearScape boss list with the OSRS Wiki `Category:Bosses` main-namespace page list.
-3. Load live equipment/weapon stats from GearScape.
-4. Resolve the configured boss name to the closest live boss match, preferring GearScape matches when available for stats.
-5. Fetch detailed monster stats for GearScape-backed bosses.
-6. Use OSRS Wiki API search to attach the canonical wiki page URL.
+3. Load OSRS Wiki price mapping once and use it as a main-game item sanity filter for live GearScape equipment/weapon rows.
+4. Load live equipment/weapon stats from GearScape.
+5. Resolve the configured boss name to the closest live boss match, preferring GearScape matches when available for stats.
+6. Fetch detailed monster stats for GearScape-backed bosses.
 7. Run the recommendation engine against live equipment where available; otherwise use the local fallback set.
+
+The plugin should not discard GearScape: it is still the practical source for live item combat stats. The OSRS Wiki mapping is a reliability layer to reject obvious non-main-game/stale rows such as temporary Gauntlet variants, Deadman/Leagues rows, or other entries that are not present in current OSRS item metadata. Local curated items remain important for new gear that GearScape may lag on, such as confliction gauntlets.
 
 ## Current caveat
 

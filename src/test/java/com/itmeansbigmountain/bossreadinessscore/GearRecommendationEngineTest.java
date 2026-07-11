@@ -102,6 +102,7 @@ public class GearRecommendationEngineTest
 		assertEquals(20997, GearRecommendationEngine.fallbackItemId("Twisted bow"));
 		assertEquals(29591, GearRecommendationEngine.fallbackItemId("Scorching bow"));
 		assertEquals(29594, GearRecommendationEngine.fallbackItemId("Purging staff"));
+		assertEquals(31106, GearRecommendationEngine.fallbackItemId("Confliction gauntlets"));
 		assertEquals(29589, GearRecommendationEngine.fallbackItemId("Emberlight"));
 		assertEquals(26374, GearRecommendationEngine.fallbackItemId("Zaryte crossbow"));
 		assertEquals(28338, GearRecommendationEngine.fallbackItemId("Soulreaper axe"));
@@ -130,6 +131,7 @@ public class GearRecommendationEngineTest
 
 		SetupRecommendation magic = GearRecommendationEngine.recommend(BossProfile.GENERAL_PVM, CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats);
 		assertEquals("tumeken's shadow", magic.getItem(GearSlot.WEAPON).getName());
+		assertEquals("confliction gauntlets", magic.getItem(GearSlot.HANDS).getName());
 		assertTrue(magic.getItem(GearSlot.WEAPON).isTwoHanded());
 		assertFalse("2H weapon should not also equip a shield", magic.getItems().containsKey(GearSlot.SHIELD));
 
@@ -170,6 +172,7 @@ public class GearRecommendationEngineTest
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Trailblazer reloaded blowpipe ornament kit"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Leagues trophy"));
 		assertTrue(GearRecommendationEngine.isExcludedGameModeItem("Relic hunter body"));
+		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("confliction gauntlets"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("crystal bow"));
 		assertFalse(GearRecommendationEngine.isExcludedGameModeItem("bow of faerdhinen"));
 	}

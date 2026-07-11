@@ -33,6 +33,7 @@ public class BossDataService
 	private static final String GEARSCAPE_MONSTER_ID = "https://api.gearscape.net/api/monster/id/";
 	private static final String GEARSCAPE_EQUIPMENT = "https://api.gearscape.net/api/equipment/all";
 	private static final String GEARSCAPE_WEAPONS = "https://api.gearscape.net/api/weapon/all";
+	private static final String WIKI_PRICE_MAPPING = "https://prices.runescape.wiki/api/v1/osrs/mapping";
 	private static final String WIKI_BOSSES_CATEGORY = "https://oldschool.runescape.wiki/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:Bosses&cmnamespace=0&cmlimit=500";
 	private static final List<String> FALLBACK_BOSSES = Arrays.asList(
 		"None - best overall for my stats", "General PvM", "Scurrius", "Giant Mole", "Barrows", "Fight Caves", "Fight Kiln", "Inferno",
@@ -317,6 +318,7 @@ public class BossDataService
 	private List<GearItem> fetchGearItems() throws IOException, InterruptedException
 	{
 		List<GearItem> items = new ArrayList<>();
+		WikiItemMapping wikiItems = fetchWikiItemMapping();
 		JsonObject equipmentRoot = getJson(GEARSCAPE_EQUIPMENT).getAsJsonObject("equipment");
 		for (Map.Entry<String, JsonElement> entry : equipmentRoot.entrySet())
 		{
@@ -327,21 +329,48 @@ public class BossDataService
 			}
 			for (JsonElement item : entry.getValue().getAsJsonArray())
 			{
-				toGearItem(slot, item.getAsJsonObject()).ifPresent(items::add);
+				toGearItem(slot, item.getAsJsonObject(), wikiItems).ifPresent(items::add);
 			}
 		}
 		JsonArray weapons = getJson(GEARSCAPE_WEAPONS).getAsJsonArray("weapons");
 		for (JsonElement item : weapons)
 		{
-			toGearItem(GearSlot.WEAPON, item.getAsJsonObject()).ifPresent(items::add);
+			toGearItem(GearSlot.WEAPON, item.getAsJsonObject(), wikiItems).ifPresent(items::add);
 		}
 		return items;
 	}
 
-	private Optional<GearItem> toGearItem(GearSlot slot, JsonObject obj)
+	private WikiItemMapping fetchWikiItemMapping() throws IOException, InterruptedException
+	{
+		Set<Integer> ids = new java.util.HashSet<>();
+		Set<String> names = new java.util.HashSet<>();
+		JsonArray mapping = getJsonArray(WIKI_PRICE_MAPPING);
+		for (JsonElement element : mapping)
+		{
+			JsonObject obj = element.getAsJsonObject();
+			int id = intValue(obj, "id", -1);
+			String name = normalize(stringValue(obj, "name", ""));
+			if (id > 0)
+			{
+				ids.add(id);
+			}
+			if (!name.isEmpty())
+			{
+				names.add(name);
+			}
+		}
+		return new WikiItemMapping(ids, names);
+	}
+
+	private Optional<GearItem> toGearItem(GearSlot slot, JsonObject obj, WikiItemMapping wikiItems)
 	{
 		String name = stringValue(obj, "name", "");
 		if (name.isEmpty() || name.toLowerCase(Locale.ROOT).contains("null") || GearRecommendationEngine.isExcludedGameModeItem(name))
+		{
+			return Optional.empty();
+		}
+		int itemId = itemIdFor(obj);
+		if (!wikiItems.accepts(itemId, name))
 		{
 			return Optional.empty();
 		}
@@ -358,8 +387,8 @@ public class BossDataService
 		}
 		long price = Math.max(0L, longValue(obj, "price", 0L));
 		String wikiUrl = OsrsWikiApiClient.pageUrl(name);
-		String sourceNote = "Live GearScape stats; OSRS Wiki item page: " + wikiUrl;
-		return Optional.of(new GearItem(slot, itemIdFor(obj), name, styles,
+		String sourceNote = "Live GearScape stats; verified against OSRS Wiki price mapping; OSRS Wiki item page: " + wikiUrl;
+		return Optional.of(new GearItem(slot, itemId, name, styles,
 			intValue(obj, "attack_req", 1), intValue(obj, "strength_req", 1), intValue(obj, "defence_req", 1),
 			intValue(obj, "magic_req", 1), intValue(obj, "ranged_req", 1), intValue(obj, "prayer_req", 1),
 			attackBonus, strengthBonus, price, sourceNote, stringValue(obj, "icon", null), wikiUrl));
@@ -417,6 +446,21 @@ public class BossDataService
 			throw new IOException(url + " returned HTTP " + response.statusCode());
 		}
 		return JsonParser.parseString(response.body()).getAsJsonObject();
+	}
+
+	private JsonArray getJsonArray(String url) throws IOException, InterruptedException
+	{
+		HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+			.timeout(Duration.ofSeconds(20))
+			.header("User-Agent", USER_AGENT)
+			.GET()
+			.build();
+		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		if (response.statusCode() >= 400)
+		{
+			throw new IOException(url + " returned HTTP " + response.statusCode());
+		}
+		return JsonParser.parseString(response.body()).getAsJsonArray();
 	}
 
 	private static GearSlot gearSlot(String key)
@@ -538,4 +582,21 @@ public class BossDataService
 		int getCombatLevel() { return combatLevel; }
 		List<String> getAttributes() { return attributes; }
 	}
+	private static final class WikiItemMapping
+	{
+		private final Set<Integer> ids;
+		private final Set<String> names;
+
+		private WikiItemMapping(Set<Integer> ids, Set<String> names)
+		{
+			this.ids = ids;
+			this.names = names;
+		}
+
+		private boolean accepts(int itemId, String name)
+		{
+			return (itemId > 0 && ids.contains(itemId)) || names.contains(normalize(name));
+		}
+	}
+
 }

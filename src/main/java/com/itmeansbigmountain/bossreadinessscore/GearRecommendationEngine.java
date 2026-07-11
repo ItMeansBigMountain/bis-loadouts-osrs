@@ -86,7 +86,6 @@ public final class GearRecommendationEngine
 			|| normalized.startsWith("basic bow")
 			|| normalized.startsWith("basic staff")
 			|| normalized.startsWith("basic halberd")
-			|| normalized.contains(" gauntlet")
 			|| normalized.contains("(perfected)")
 			|| normalized.contains("(attuned)")
 			|| normalized.contains("(basic)")
@@ -350,6 +349,7 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.SHIELD, "elidinis' ward", magic, 0, 0, 1, 80, 0, 0, 25, 5, 8_500_000, "Strong magic offhand."));
 		items.add(item(GearSlot.HANDS, "barrows gloves", magic, 0, 0, 1, 1, 1, 1, 6, 0, 130_000, "Quest glove fallback."));
 		items.add(item(GearSlot.HANDS, "tormented bracelet", magic, 0, 0, 75, 75, 0, 0, 10, 5, 16_000_000, "High-impact magic glove."));
+		items.add(item(GearSlot.HANDS, "confliction gauntlets", magic, 0, 0, 1, 75, 0, 0, 20, 12, 80_000_000, "Current OSRS best-in-slot magic gloves; requires 90 Hitpoints in game."));
 		items.add(item(GearSlot.FEET, "eternal boots", magic, 0, 0, 75, 75, 0, 0, 8, 0, 5_000_000, "Magic boots."));
 		items.add(item(GearSlot.RING, "magus ring", magic, 0, 0, 1, 75, 0, 0, 15, 2, 30_000_000, "High-end magic ring."));
 	}
@@ -434,6 +434,7 @@ public final class GearRecommendationEngine
 			case "imbued god cape": return 21791;
 			case "elidinis' ward": return 25985;
 			case "tormented bracelet": return 19544;
+			case "confliction gauntlets": return 31106;
 			case "eternal boots": return 13235;
 			case "magus ring": return 28313;
 			case "rune crossbow": return 9185;

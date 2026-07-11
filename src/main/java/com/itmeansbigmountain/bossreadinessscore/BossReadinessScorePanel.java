@@ -39,9 +39,9 @@ import net.runelite.client.ui.PluginPanel;
 public class BossReadinessScorePanel extends PluginPanel
 {
 	private static final String NONE_BOSS = "None";
-	private static final int PANEL_WIDTH = 198;
-	private static final int TEXT_WIDTH = 174;
-	private static final int CONTROL_WIDTH = 168;
+	private static final int PANEL_WIDTH = 210;
+	private static final int TEXT_WIDTH = 184;
+	private static final int CONTROL_WIDTH = 176;
 	private static final int EQUIPMENT_CELL_WIDTH = 52;
 	private static final int EQUIPMENT_CELL_HEIGHT = 64;
 	private static final int ICON_SIZE = 32;
@@ -135,18 +135,18 @@ public class BossReadinessScorePanel extends PluginPanel
 		addStyleControls();
 		addSpacer();
 		JButton analyze = new JButton("Analyze");
-		analyze.setAlignmentX(Component.LEFT_ALIGNMENT);
+		analyze.setAlignmentX(Component.CENTER_ALIGNMENT);
 		Dimension analyzeSize = new Dimension(CONTROL_WIDTH, 32);
 		analyze.setPreferredSize(analyzeSize);
 		analyze.setMinimumSize(new Dimension(140, 30));
-		analyze.setMaximumSize(new Dimension(TEXT_WIDTH, 32));
+		analyze.setMaximumSize(analyzeSize);
 		analyze.addActionListener(event -> {
 			if (analyzeListener != null)
 			{
 				analyzeListener.accept(selectedBoss(), selectedStyle());
 			}
 		});
-		content.add(analyze);
+		addCentered(analyze, CONTROL_WIDTH, 32);
 		if (currentStatus != null && !currentStatus.isEmpty())
 		{
 			addMuted(summarizeStatus(currentStatus));
@@ -199,13 +199,8 @@ public class BossReadinessScorePanel extends PluginPanel
 			}
 		}
 		filterBossOptions(selectedBoss(), false);
-		bossSelector.setAlignmentX(Component.LEFT_ALIGNMENT);
-		JPanel selectorWrapper = new JPanel(new GridBagLayout());
-		selectorWrapper.setOpaque(false);
-		selectorWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-		selectorWrapper.setMaximumSize(new Dimension(TEXT_WIDTH, 30));
-		selectorWrapper.add(bossSelector, new GridBagConstraints());
-		content.add(selectorWrapper);
+		bossSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
+		addCentered(bossSelector, CONTROL_WIDTH, 30);
 	}
 
 	private void addStyleControls()
@@ -213,13 +208,13 @@ public class BossReadinessScorePanel extends PluginPanel
 		addTitle("Setup style");
 		JPanel styleGrid = new JPanel(new GridBagLayout());
 		styleGrid.setOpaque(false);
-		styleGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
+		styleGrid.setAlignmentX(Component.CENTER_ALIGNMENT);
 		styleGrid.setMaximumSize(new Dimension(CONTROL_WIDTH, 42));
 		addStyleButton(styleGrid, autoStyle, 0, 0);
 		addStyleButton(styleGrid, magicStyle, 1, 0);
 		addStyleButton(styleGrid, rangedStyle, 0, 1);
 		addStyleButton(styleGrid, meleeStyle, 1, 1);
-		content.add(styleGrid);
+		addCentered(styleGrid, CONTROL_WIDTH, 42);
 		addMuted("Auto = best style. None = best gear for stats.");
 	}
 
@@ -256,7 +251,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		JPanel gridWrapper = new JPanel(new GridBagLayout());
 		gridWrapper.setOpaque(false);
 		gridWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
-		gridWrapper.setMaximumSize(new Dimension(TEXT_WIDTH, grid.getPreferredSize().height));
+		gridWrapper.setMaximumSize(new Dimension(PANEL_WIDTH, grid.getPreferredSize().height));
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
 		addMuted("< > cycles alternatives.");
@@ -515,29 +510,45 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addTitle(String text)
 	{
-		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\">" + escape(text) + "</div></html>");
-		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:center\">" + escape(text) + "</div></html>");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setFont(label.getFont().deriveFont(Font.BOLD, 12.0F));
 		label.setBorder(BorderFactory.createEmptyBorder(4, 0, 3, 0));
-		content.add(label);
+		addCentered(label, TEXT_WIDTH, label.getPreferredSize().height);
 	}
 
 	private void addLine(String label, String value)
 	{
-		JLabel row = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\"><b>" + escape(label) + ":</b> " + escape(value) + "</div></html>");
-		row.setAlignmentX(Component.LEFT_ALIGNMENT);
+		JLabel row = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:center\"><b>" + escape(label) + ":</b> " + escape(value) + "</div></html>");
+		row.setAlignmentX(Component.CENTER_ALIGNMENT);
+		row.setHorizontalAlignment(JLabel.CENTER);
 		row.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-		content.add(row);
+		addCentered(row, TEXT_WIDTH, row.getPreferredSize().height);
 	}
 
 	private void addMuted(String text)
 	{
-		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px\">" + escape(text) + "</div></html>");
-		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		JLabel label = new JLabel("<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:center\">" + escape(text) + "</div></html>");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label.setHorizontalAlignment(JLabel.CENTER);
 		label.setForeground(Color.GRAY);
 		label.setFont(label.getFont().deriveFont(10.0F));
 		label.setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));
-		content.add(label);
+		addCentered(label, TEXT_WIDTH, label.getPreferredSize().height);
+	}
+
+	private void addCentered(Component component, int width, int height)
+	{
+		JPanel wrapper = new JPanel(new GridBagLayout());
+		wrapper.setOpaque(false);
+		wrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
+		wrapper.setPreferredSize(new Dimension(PANEL_WIDTH, height));
+		wrapper.setMaximumSize(new Dimension(PANEL_WIDTH, height));
+		wrapper.add(component, new GridBagConstraints());
+		component.setPreferredSize(new Dimension(width, height));
+		component.setMaximumSize(new Dimension(width, height));
+		content.add(wrapper);
 	}
 
 	private void addSpacer()
