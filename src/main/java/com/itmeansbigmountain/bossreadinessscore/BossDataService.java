@@ -91,7 +91,7 @@ public class BossDataService
 		loadedAt = Instant.now();
 		long gearscapeBosses = bosses.stream().filter(BossIndexEntry::hasGearscapeId).count();
 		long wikiOnlyBosses = bosses.size() - gearscapeBosses;
-		status = gearStatus + "Loaded " + bosses.size() + " boss autocomplete entries (" + gearscapeBosses + " GearScape + " + wikiOnlyBosses + " Wiki-only) and " + items.size() + " live equipment records.";
+		status = gearStatus + "Loaded " + bosses.size() + " boss autocomplete entries (" + gearscapeBosses + " GearScape + " + wikiOnlyBosses + " Wiki-only) and " + items.size() + " Wiki-validated live equipment records.";
 	}
 
 	public List<GearItem> getGearItems()
