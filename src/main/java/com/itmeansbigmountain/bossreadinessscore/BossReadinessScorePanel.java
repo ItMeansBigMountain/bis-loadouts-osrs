@@ -700,14 +700,14 @@ public class BossReadinessScorePanel extends PluginPanel
 	private void addGearInfoBlock(String title, String text)
 	{
 		String body = escape(text).replace("\n", "<br>");
-		String html = "<html><div style=\"width:" + EQUIPMENT_TEXT_WIDTH + "px; text-align:left; line-height:1.25;\">"
+		String html = "<html><div style=\"width:" + EQUIPMENT_TEXT_WIDTH + "px; text-align:left; line-height:1.35;\">"
 			+ "<b>" + escape(title) + "</b><br>" + body + "</div></html>";
 		JLabel label = new JLabel(html);
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.LEFT);
 		label.setForeground(new Color(190, 190, 180));
-		label.setFont(label.getFont().deriveFont(11.5F));
-		label.setBorder(BorderFactory.createEmptyBorder(5, 0, 7, 0));
+		label.setFont(label.getFont().deriveFont(13.0F));
+		label.setBorder(BorderFactory.createEmptyBorder(6, 0, 8, 0));
 		addCentered(label, EQUIPMENT_TEXT_WIDTH, label.getPreferredSize().height);
 	}
 
