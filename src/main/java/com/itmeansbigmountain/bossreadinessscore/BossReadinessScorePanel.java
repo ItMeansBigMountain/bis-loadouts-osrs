@@ -43,6 +43,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private static final int PANEL_WIDTH = 210;
 	private static final int TEXT_WIDTH = 184;
 	private static final int CONTROL_WIDTH = 176;
+	private static final int EQUIPMENT_TEXT_WIDTH = 164;
 	private static final int EQUIPMENT_CELL_WIDTH = 52;
 	private static final int EQUIPMENT_CELL_HEIGHT = 64;
 	private static final int ICON_SIZE = 32;
@@ -234,7 +235,7 @@ public class BossReadinessScorePanel extends PluginPanel
 
 	private void addEquipmentGrid(SetupRecommendation recommendation)
 	{
-		addTitle("Recommended equipment");
+		addGearSectionTitle("Recommended equipment");
 		JPanel grid = new JPanel(new GridBagLayout());
 		grid.setBorder(BorderFactory.createLineBorder(new Color(80, 75, 65), 1));
 		grid.setBackground(new Color(46, 42, 35));
@@ -257,7 +258,7 @@ public class BossReadinessScorePanel extends PluginPanel
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
 		addWeaponSetToggle(recommendation);
-		addInfoBlock("• Arrows cycle gear. Left is strongest.\n• 1H/2H switches weapon lists.");
+		addGearInfoBlock("Gear controls", "• Arrows cycle gear. Left is strongest.\n• 1H/2H switches weapon lists.");
 		if (currentTarget != null)
 		{
 			addBossDefenseGuide(currentTarget);
@@ -349,11 +350,16 @@ public class BossReadinessScorePanel extends PluginPanel
 		}
 		if (!recommendation.getAlternatives().isEmpty())
 		{
-			addTitle("Other styles");
+			StringBuilder dpsText = new StringBuilder();
 			for (SetupRecommendation alt : recommendation.getAlternatives())
 			{
-				addLine(alt.getStyle().toString(), String.format("%.2f DPS", alt.getEstimatedDps()));
+				if (dpsText.length() > 0)
+				{
+					dpsText.append("\n");
+				}
+				dpsText.append("• ").append(alt.getStyle()).append(": ").append(String.format("%.2f DPS", alt.getEstimatedDps()));
 			}
+			addGearInfoBlock("DPS per style", dpsText.toString());
 		}
 	}
 
@@ -491,18 +497,22 @@ public class BossReadinessScorePanel extends PluginPanel
 		List<DefenceValue> values = bossDefenceValues(target);
 		if (values.stream().allMatch(value -> value.value == 0))
 		{
-			addInfoBlock("Boss defenses\n• Unknown from this data source");
+			addGearInfoBlock("Boss attack style guide", "• Unknown from this data source");
 			return;
 		}
 		values.sort(Comparator.comparingInt(value -> value.value));
-		StringBuilder text = new StringBuilder("Boss attack style guide");
+		StringBuilder text = new StringBuilder();
 		for (int i = 0; i < values.size(); i++)
 		{
 			DefenceValue value = values.get(i);
-			text.append("\n• ").append(rankLabel(i, values.size())).append(": ")
+			if (text.length() > 0)
+			{
+				text.append("\n");
+			}
+			text.append("• ").append(rankLabel(i, values.size())).append(": ")
 				.append(value.label).append(" def ").append(value.value);
 		}
-		addInfoBlock(text.toString());
+		addGearInfoBlock("Boss attack style guide", text.toString());
 	}
 
 	private static List<DefenceValue> bossDefenceValues(BossTarget target)
@@ -677,17 +687,28 @@ public class BossReadinessScorePanel extends PluginPanel
 		addCentered(row, TEXT_WIDTH, row.getPreferredSize().height);
 	}
 
-	private void addInfoBlock(String text)
+	private void addGearSectionTitle(String text)
 	{
-		String html = "<html><div style=\"width:" + TEXT_WIDTH + "px; text-align:left; line-height:1.25;\">"
-			+ escape(text).replace("\n", "<br>") + "</div></html>";
+		JLabel label = new JLabel("<html><div style=\"width:" + EQUIPMENT_TEXT_WIDTH + "px; text-align:left\"><b>" + escape(text) + "</b></div></html>");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label.setHorizontalAlignment(JLabel.LEFT);
+		label.setFont(label.getFont().deriveFont(Font.BOLD, 12.0F));
+		label.setBorder(BorderFactory.createEmptyBorder(6, 0, 3, 0));
+		addCentered(label, EQUIPMENT_TEXT_WIDTH, label.getPreferredSize().height);
+	}
+
+	private void addGearInfoBlock(String title, String text)
+	{
+		String body = escape(text).replace("\n", "<br>");
+		String html = "<html><div style=\"width:" + EQUIPMENT_TEXT_WIDTH + "px; text-align:left; line-height:1.25;\">"
+			+ "<b>" + escape(title) + "</b><br>" + body + "</div></html>";
 		JLabel label = new JLabel(html);
 		label.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label.setHorizontalAlignment(JLabel.LEFT);
 		label.setForeground(new Color(190, 190, 180));
 		label.setFont(label.getFont().deriveFont(11.5F));
 		label.setBorder(BorderFactory.createEmptyBorder(5, 0, 7, 0));
-		addCentered(label, TEXT_WIDTH, label.getPreferredSize().height);
+		addCentered(label, EQUIPMENT_TEXT_WIDTH, label.getPreferredSize().height);
 	}
 
 	private void addMuted(String text)
