@@ -4,6 +4,16 @@ BIS Loadouts is a RuneLite external plugin for boss-focused gear recommendations
 
 The plugin is intentionally lightweight for its first Plugin Hub candidate release. It is designed as an in-client gear advisor and pre-fight sanity check, not a full GearScape-equivalent DPS simulator.
 
+## Screenshots
+
+### Side panel gear recommendations
+
+![BIS Loadouts side panel showing boss search, style controls, loadout score, and gear recommendations](docs/assets/bis-loadouts-side-panel.png)
+
+### Gear controls, boss defence guide, and DPS per style
+
+![BIS Loadouts lower panel showing gear controls, boss attack style guide, and DPS per style](docs/assets/bis-loadouts-recommendations.png)
+
 ## Features
 
 - RuneLite side panel with selected boss, combat style, estimated DPS, hit chance, max hit, warnings, and gear recommendations by slot.
