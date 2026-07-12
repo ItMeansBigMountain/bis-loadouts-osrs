@@ -13,7 +13,13 @@ cd BisLoadouts
 If you cloned the whole HeRmEz workspace with submodules, the path is usually:
 
 ```bash
-cd HeRmEz/projects/osrs-plugins/BisLoadouts
+cd HeRmEz/projects/osrs-plugins/pr-review-pending/BisLoadouts
+```
+
+During active development before PR review, the project may live at:
+
+```bash
+cd HeRmEz/projects/osrs-plugins/in-progress/BisLoadouts
 ```
 
 ## 1. Java requirement
@@ -176,7 +182,7 @@ Check:
 cat runelite-plugin.properties
 ```
 
-The `pluginClass` must point to the real main plugin class under `src/main/java`.
+The `plugins` entry must point to the real main plugin class under `src/main/java`.
 
 Also verify the Gradle `run` task points at the repo's `*PluginTest` launcher.
 
@@ -223,7 +229,7 @@ If this repo is checked out as a HeRmEz submodule, update the parent repo after 
 
 ```bash
 cd ../../..
-git add projects/osrs-plugins/BisLoadouts
+git add projects/osrs-plugins/pr-review-pending/BisLoadouts
 git commit -m "chore: update BisLoadouts submodule"
 git push origin main
 ```
