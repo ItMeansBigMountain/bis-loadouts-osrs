@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 public class BossDataService
 {
-	private static final String USER_AGENT = "BossReadinessScore/1.0 (RuneLite plugin; github.com/ItMeansBigMountain/boss-readiness-score-osrs)";
+	private static final String USER_AGENT = "BisLoadouts/1.0 (RuneLite plugin; github.com/ItMeansBigMountain/bis-loadouts-osrs)";
 	private static final String GEARSCAPE_MONSTERS = "https://api.gearscape.net/api/monster";
 	private static final String GEARSCAPE_MONSTER_ID = "https://api.gearscape.net/api/monster/id/";
 	private static final String GEARSCAPE_EQUIPMENT = "https://api.gearscape.net/api/equipment/all";
@@ -226,11 +226,11 @@ public class BossDataService
 			stringValue(monster, "name", entry.getName()),
 			entry.getId(),
 			combat,
-			readinessTarget(intValue(monster, "level_attack", combat / 3)),
-			readinessTarget(intValue(monster, "level_strength", combat / 3)),
-			readinessTarget(intValue(monster, "level_defence", combat / 3)),
-			readinessTarget(intValue(monster, "level_ranged", combat / 3)),
-			readinessTarget(intValue(monster, "level_magic", combat / 3)),
+			loadoutTarget(intValue(monster, "level_attack", combat / 3)),
+			loadoutTarget(intValue(monster, "level_strength", combat / 3)),
+			loadoutTarget(intValue(monster, "level_defence", combat / 3)),
+			loadoutTarget(intValue(monster, "level_ranged", combat / 3)),
+			loadoutTarget(intValue(monster, "level_magic", combat / 3)),
 			intValue(monster, "level_hp", 100),
 			intValue(monster, "def_stab", 0),
 			intValue(monster, "def_slash", 0),
@@ -243,7 +243,7 @@ public class BossDataService
 		);
 	}
 
-	private static int readinessTarget(int monsterLevel)
+	private static int loadoutTarget(int monsterLevel)
 	{
 		return Math.max(35, Math.min(99, (int) Math.round(monsterLevel / 4.0D + 35.0D)));
 	}

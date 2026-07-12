@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import java.util.Collections;
 import java.util.EnumSet;

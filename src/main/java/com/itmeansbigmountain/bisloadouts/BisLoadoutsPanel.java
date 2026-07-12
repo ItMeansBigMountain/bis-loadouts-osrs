@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,7 +37,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import net.runelite.client.ui.PluginPanel;
 
-public class BossReadinessScorePanel extends PluginPanel
+public class BisLoadoutsPanel extends PluginPanel
 {
 	private static final String NONE_BOSS = "None";
 	private static final int PANEL_WIDTH = 210;
@@ -66,7 +66,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	private String currentStatus = "Loading boss/equipment data...";
 	private Boolean weaponTwoHandedMode;
 
-	public BossReadinessScorePanel()
+	public BisLoadoutsPanel()
 	{
 		super(false);
 		setLayout(new BorderLayout());
@@ -224,7 +224,7 @@ public class BossReadinessScorePanel extends PluginPanel
 	{
 		addTitle(recommendation.getBossName() + " setup");
 		addLine("Chosen style", recommendation.getStyle().toString());
-		addLine("Readiness", recommendation.getReadinessScore() + "/100");
+		addLine("Loadout Fit", recommendation.getLoadoutScore() + "/100");
 		addLine("Est. DPS", String.format("%.2f", recommendation.getEstimatedDps()));
 		if (target != null)
 		{

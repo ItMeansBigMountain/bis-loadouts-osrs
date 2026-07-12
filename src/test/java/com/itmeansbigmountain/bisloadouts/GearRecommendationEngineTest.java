@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class GearRecommendationEngineTest
 		assertEquals("trident of the swamp", recommendation.getItem(GearSlot.WEAPON).getName());
 		assertEquals("ahrim's robetop", recommendation.getItem(GearSlot.BODY).getName());
 		assertTrue(recommendation.getEstimatedDps() > 0.0D);
-		assertTrue(recommendation.getReadinessScore() > 0);
+		assertTrue(recommendation.getLoadoutScore() > 0);
 	}
 
 	@Test

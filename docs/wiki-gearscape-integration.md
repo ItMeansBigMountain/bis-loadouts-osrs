@@ -40,4 +40,4 @@ The plugin should not discard GearScape: it is still the practical source for li
 
 ## Current caveat
 
-This is still a simplified DPS/readiness model. It uses live item and monster stats, but it is not a full GearScape-equivalent permutation calculator yet. GearScape's web app does much deeper worker-based setup search with prayers, potions, specs, ammunition compatibility, and special mechanics.
+This is still a simplified DPS/loadout fit model. It uses live item and monster stats, but it is not a full GearScape-equivalent permutation calculator yet. GearScape's web app does much deeper worker-based setup search with prayers, potions, specs, ammunition compatibility, and special mechanics.

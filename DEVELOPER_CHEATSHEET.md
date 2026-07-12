@@ -1,4 +1,4 @@
-# BossReadinessScore Developer Cheat Sheet
+# BisLoadouts Developer Cheat Sheet
 
 Quick commands for testing this RuneLite external plugin locally.
 
@@ -7,13 +7,13 @@ Quick commands for testing this RuneLite external plugin locally.
 Run every command from this repo root:
 
 ```bash
-cd BossReadinessScore
+cd BisLoadouts
 ```
 
 If you cloned the whole HeRmEz workspace with submodules, the path is usually:
 
 ```bash
-cd HeRmEz/projects/osrs-plugins/BossReadinessScore
+cd HeRmEz/projects/osrs-plugins/BisLoadouts
 ```
 
 ## 1. Java requirement
@@ -223,7 +223,7 @@ If this repo is checked out as a HeRmEz submodule, update the parent repo after 
 
 ```bash
 cd ../../..
-git add projects/osrs-plugins/BossReadinessScore
-git commit -m "chore: update BossReadinessScore submodule"
+git add projects/osrs-plugins/BisLoadouts
+git commit -m "chore: update BisLoadouts submodule"
 git push origin main
 ```

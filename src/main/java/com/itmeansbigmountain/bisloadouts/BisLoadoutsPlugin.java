@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import com.google.inject.Provides;
 import java.awt.Color;
@@ -34,12 +34,12 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.AsyncBufferedImage;
 
 @PluginDescriptor(
-	name = "Boss Readiness Score",
+	name = "BIS Loadouts",
 	description = "Side-panel boss gear analyzer that recommends best wearable OSRS gear by stats, boss, and combat style.",
-	tags = {"boss", "pvm", "readiness", "gear", "bis"}
+	tags = {"boss", "pvm", "loadout", "gear", "bis"}
 )
 @Slf4j
-public class BossReadinessScorePlugin extends Plugin
+public class BisLoadoutsPlugin extends Plugin
 {
 	private static final int MAX_SCORE = 100;
 
@@ -47,7 +47,7 @@ public class BossReadinessScorePlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private BossReadinessScoreConfig config;
+	private BisLoadoutsConfig config;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -57,7 +57,7 @@ public class BossReadinessScorePlugin extends Plugin
 
 	private final BossDataService bossDataService = new BossDataService();
 	private ExecutorService apiExecutor;
-	private BossReadinessScorePanel panel;
+	private BisLoadoutsPanel panel;
 	private NavigationButton navButton;
 	private volatile String selectedBossName = "None";
 	private volatile CombatStyle selectedStyle = CombatStyle.AUTO;
@@ -65,9 +65,9 @@ public class BossReadinessScorePlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		log.debug("Boss Readiness Score started");
+		log.debug("BIS Loadouts started");
 		apiExecutor = Executors.newSingleThreadExecutor();
-		panel = new BossReadinessScorePanel();
+		panel = new BisLoadoutsPanel();
 		panel.setItemIconProvider(this::applyItemIcon);
 		panel.setItemWikiOpener(this::openItemWiki);
 		panel.setAnalyzeListener((bossName, style) -> {
@@ -77,7 +77,7 @@ public class BossReadinessScorePlugin extends Plugin
 		});
 		panel.showWaitingForLogin(bossDataService.getBossNameSuggestions(1000), bossDataService.getStatus());
 		navButton = NavigationButton.builder()
-			.tooltip("Boss Readiness Score")
+			.tooltip("BIS Loadouts")
 			.icon(createIcon())
 			.priority(5)
 			.panel(panel)
@@ -99,7 +99,7 @@ public class BossReadinessScorePlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
-		log.debug("Boss Readiness Score stopped");
+		log.debug("BIS Loadouts stopped");
 		if (navButton != null)
 		{
 			clientToolbar.removeNavigation(navButton);
@@ -124,13 +124,13 @@ public class BossReadinessScorePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if ("bossreadinessscore".equals(event.getGroup()))
+		if ("bisloadouts".equals(event.getGroup()))
 		{
 			refreshPanel(false);
 		}
 	}
 
-	static int calculateReadinessScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
+	static int calculateLoadoutScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
 		int targetCombatLevel, int targetPrayerLevel)
 	{
 		int safeTargetCombat = Math.max(1, targetCombatLevel);
@@ -260,7 +260,7 @@ public class BossReadinessScorePlugin extends Plugin
 
 	private static BufferedImage createIcon()
 	{
-		try (InputStream stream = BossReadinessScorePlugin.class.getResourceAsStream("boss_readiness_icon.png"))
+		try (InputStream stream = BisLoadoutsPlugin.class.getResourceAsStream("bis_loadouts_icon.png"))
 		{
 			if (stream != null)
 			{
@@ -283,8 +283,8 @@ public class BossReadinessScorePlugin extends Plugin
 	}
 
 	@Provides
-	BossReadinessScoreConfig provideConfig(ConfigManager configManager)
+	BisLoadoutsConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(BossReadinessScoreConfig.class);
+		return configManager.getConfig(BisLoadoutsConfig.class);
 	}
 }

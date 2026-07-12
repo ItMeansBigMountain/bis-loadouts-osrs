@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +44,7 @@ public final class GearRecommendationEngine
 			.collect(Collectors.toList());
 
 		return new SetupRecommendation(best.getBossName(), best.getStyle(), best.getItems(), best.getSlotAlternatives(), best.getEstimatedDps(),
-			best.getHitChance(), best.getMaxHit(), best.getReadinessScore(), best.getWarnings(), alternatives);
+			best.getHitChance(), best.getMaxHit(), best.getLoadoutScore(), best.getWarnings(), alternatives);
 	}
 
 	private static List<GearItem> mergeCandidateItems(List<GearItem> liveItems)
@@ -164,9 +164,9 @@ public final class GearRecommendationEngine
 		int maxHit = Math.max(1, (int) Math.round((styleDamageLevel(style, stats) / 8.0D) + selected.values().stream().mapToInt(GearItem::getStrengthBonus).sum() / 10.0D));
 		double attackSpeed = style == CombatStyle.MAGIC ? 2.4D : style == CombatStyle.RANGED ? 3.0D : 3.6D;
 		double dps = round(((maxHit * hitChance / 2.0D) / attackSpeed) * styleMultiplier(boss, style));
-		int readiness = calculateReadiness(boss, style, stats, selected, warnings);
+		int loadoutFit = calculateLoadoutFit(boss, style, stats, selected, warnings);
 
-		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, readiness, warnings, Collections.emptyList());
+		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, loadoutFit, warnings, Collections.emptyList());
 	}
 
 	private static void filterAmmoForWeapon(Map<GearSlot, GearItem> selected, Map<GearSlot, List<GearItem>> slotAlternatives, GearItem weapon)
@@ -218,9 +218,9 @@ public final class GearRecommendationEngine
 		}
 	}
 
-	private static int calculateReadiness(BossTarget boss, CombatStyle style, PlayerStats stats, Map<GearSlot, GearItem> items, List<String> warnings)
+	private static int calculateLoadoutFit(BossTarget boss, CombatStyle style, PlayerStats stats, Map<GearSlot, GearItem> items, List<String> warnings)
 	{
-		int core = basicReadinessScore(boss.getTargetCombat(), stats.getHitpoints(), stats.getPrayer(), stats.getDefence(), boss.getTargetCombat(), 43);
+		int core = basicLoadoutScore(boss.getTargetCombat(), stats.getHitpoints(), stats.getPrayer(), stats.getDefence(), boss.getTargetCombat(), 43);
 		double styleRatio;
 		if (style == CombatStyle.MAGIC)
 		{
@@ -328,7 +328,7 @@ public final class GearRecommendationEngine
 		return Math.max(min, Math.min(max, value));
 	}
 
-	private static int basicReadinessScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
+	private static int basicLoadoutScore(int combatLevel, int hitpointsLevel, int prayerLevel, int defenceLevel,
 		int targetCombatLevel, int targetPrayerLevel)
 	{
 		double combatScore = ratioScore(combatLevel, Math.max(1, targetCombatLevel)) * 0.55D;

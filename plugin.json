@@ -1,14 +1,14 @@
 {
-  "name": "Boss Readiness Score",
+  "name": "BIS Loadouts",
   "version": "1.0.0",
-  "description": "Scores account readiness for bossing from combat, Hitpoints, Prayer, and Defence levels.",
+  "description": "Scores account loadout fit for bossing from combat, Hitpoints, Prayer, and Defence levels.",
   "author": "Oyama",
   "tags": [
     "osrs",
     "runelite",
     "boss",
     "pvm",
-    "readiness",
+    "loadout",
     "combat"
   ],
   "min_engine_version": "3.0.0"

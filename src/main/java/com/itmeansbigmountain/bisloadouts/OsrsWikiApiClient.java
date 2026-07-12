@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -15,7 +15,7 @@ import java.time.Duration;
 public class OsrsWikiApiClient
 {
 	private static final String API = "https://oldschool.runescape.wiki/api.php";
-	private static final String USER_AGENT = "BossReadinessScore/1.0 (RuneLite plugin; github.com/ItMeansBigMountain/boss-readiness-score-osrs)";
+	private static final String USER_AGENT = "BisLoadouts/1.0 (RuneLite plugin; github.com/ItMeansBigMountain/bis-loadouts-osrs)";
 	private final HttpClient httpClient;
 
 	public OsrsWikiApiClient()

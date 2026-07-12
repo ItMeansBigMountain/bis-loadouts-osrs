@@ -52,5 +52,5 @@
 		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="FILE"/>
 	</root>
-	<logger name="com.itmeansbigmountain.bossreadinessscore" level="DEBUG" />
+	<logger name="com.itmeansbigmountain.bisloadouts" level="DEBUG" />
 </configuration>

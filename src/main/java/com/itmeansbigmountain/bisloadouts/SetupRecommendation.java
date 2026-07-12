@@ -1,4 +1,4 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,18 +15,18 @@ public class SetupRecommendation
 	private final double estimatedDps;
 	private final double hitChance;
 	private final int maxHit;
-	private final int readinessScore;
+	private final int loadoutScore;
 	private final List<String> warnings;
 	private final List<SetupRecommendation> alternatives;
 
 	public SetupRecommendation(String bossName, CombatStyle style, Map<GearSlot, GearItem> items, double estimatedDps,
-		double hitChance, int maxHit, int readinessScore, List<String> warnings, List<SetupRecommendation> alternatives)
+		double hitChance, int maxHit, int loadoutScore, List<String> warnings, List<SetupRecommendation> alternatives)
 	{
-		this(bossName, style, items, Collections.emptyMap(), estimatedDps, hitChance, maxHit, readinessScore, warnings, alternatives);
+		this(bossName, style, items, Collections.emptyMap(), estimatedDps, hitChance, maxHit, loadoutScore, warnings, alternatives);
 	}
 
 	public SetupRecommendation(String bossName, CombatStyle style, Map<GearSlot, GearItem> items, Map<GearSlot, List<GearItem>> slotAlternatives,
-		double estimatedDps, double hitChance, int maxHit, int readinessScore, List<String> warnings, List<SetupRecommendation> alternatives)
+		double estimatedDps, double hitChance, int maxHit, int loadoutScore, List<String> warnings, List<SetupRecommendation> alternatives)
 	{
 		this.bossName = bossName;
 		this.style = style;
@@ -40,7 +40,7 @@ public class SetupRecommendation
 		this.estimatedDps = estimatedDps;
 		this.hitChance = hitChance;
 		this.maxHit = maxHit;
-		this.readinessScore = readinessScore;
+		this.loadoutScore = loadoutScore;
 		this.warnings = Collections.unmodifiableList(new ArrayList<>(warnings));
 		this.alternatives = Collections.unmodifiableList(new ArrayList<>(alternatives));
 	}
@@ -54,7 +54,7 @@ public class SetupRecommendation
 	public double getEstimatedDps() { return estimatedDps; }
 	public double getHitChance() { return hitChance; }
 	public int getMaxHit() { return maxHit; }
-	public int getReadinessScore() { return readinessScore; }
+	public int getLoadoutScore() { return loadoutScore; }
 	public List<String> getWarnings() { return warnings; }
 	public List<SetupRecommendation> getAlternatives() { return alternatives; }
 }

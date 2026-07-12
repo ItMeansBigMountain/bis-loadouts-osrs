@@ -2,7 +2,7 @@
 
 Research date: 2026-05-31
 
-Purpose: understand GearScape enough to design an automatic RuneLite side-panel recommendation flow for `Boss Readiness Score`: player stats + selected boss + selected combat style -> recommended gear by slot, DPS/readiness notes, and beginner-friendly upgrades.
+Purpose: understand GearScape enough to design an automatic RuneLite side-panel recommendation flow for `BIS Loadouts`: player stats + selected boss + selected combat style -> recommended gear by slot, DPS/loadout fit notes, and beginner-friendly upgrades.
 
 ## What GearScape is doing
 
@@ -99,7 +99,7 @@ Other results from the same run:
 
 This confirms the UI is not just a static BiS table. It ranks candidate equipment against the target's actual defensive stats/mechanics and the player's stats/options.
 
-## Algorithm model to implement in Boss Readiness Score
+## Algorithm model to implement in BIS Loadouts
 
 We should build a simpler, RuneLite-friendly version instead of cloning the whole GearScape calculator.
 
@@ -147,7 +147,7 @@ Recommended defaults:
 - Show `best available for your current stats` before showing theoretical max BiS.
 - Show why an item was skipped: missing level, over budget, excluded, unavailable, wrong style, two-handed conflict, ammo mismatch.
 
-### Phase 2: richer boss readiness
+### Phase 2: richer boss loadout fit
 
 Add GearScape-inspired details without making the UI overwhelming:
 
@@ -166,7 +166,7 @@ Panel flow:
 2. Combat style dropdown with `Auto` option.
 3. Budget/owned-only toggle.
 4. Assumptions chips: potions, prayers, Slayer task, wilderness, spec reductions.
-5. Readiness score.
+5. Loadout score.
 6. Recommended setup by slot.
 7. Alternatives/upgrades list.
 8. Warnings and missing prerequisites.

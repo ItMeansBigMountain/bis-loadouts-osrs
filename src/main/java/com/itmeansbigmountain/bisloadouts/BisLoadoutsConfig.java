@@ -1,11 +1,11 @@
-package com.itmeansbigmountain.bossreadinessscore;
+package com.itmeansbigmountain.bisloadouts;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("bossreadinessscore")
-public interface BossReadinessScoreConfig extends Config
+@ConfigGroup("bisloadouts")
+public interface BisLoadoutsConfig extends Config
 {
 	@ConfigItem(
 		keyName = "budgetTier",
