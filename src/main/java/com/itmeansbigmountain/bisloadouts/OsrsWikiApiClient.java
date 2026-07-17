@@ -42,7 +42,7 @@ public class OsrsWikiApiClient
 		{
 			throw new IOException("OSRS Wiki API returned HTTP " + response.statusCode());
 		}
-		JsonArray root = JsonParser.parseString(response.body()).getAsJsonArray();
+		JsonArray root = new JsonParser().parse(response.body()).getAsJsonArray();
 		JsonArray titles = root.get(1).getAsJsonArray();
 		JsonArray descriptions = root.get(2).getAsJsonArray();
 		JsonArray urls = root.get(3).getAsJsonArray();

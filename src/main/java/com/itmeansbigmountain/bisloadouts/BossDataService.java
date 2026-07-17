@@ -476,7 +476,7 @@ public class BossDataService
 		{
 			throw new IOException(url + " returned HTTP " + response.statusCode());
 		}
-		return JsonParser.parseString(response.body()).getAsJsonObject();
+		return new JsonParser().parse(response.body()).getAsJsonObject();
 	}
 
 	private JsonArray getJsonArray(String url) throws IOException, InterruptedException
@@ -491,7 +491,7 @@ public class BossDataService
 		{
 			throw new IOException(url + " returned HTTP " + response.statusCode());
 		}
-		return JsonParser.parseString(response.body()).getAsJsonArray();
+		return new JsonParser().parse(response.body()).getAsJsonArray();
 	}
 
 	private static GearSlot gearSlot(String key)
