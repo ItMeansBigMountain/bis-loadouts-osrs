@@ -149,10 +149,6 @@ public class BossDataService
 			}
 			catch (IOException | InterruptedException | RuntimeException ignored)
 			{
-				if (ignored instanceof InterruptedException)
-				{
-					Thread.currentThread().interrupt();
-				}
 			}
 			return new BossTarget(entry.getName(), -1, entry.getCombatLevel(), 60, 60, 60, 60, 60, 100,
 				0, 0, 0, 0, 0, entry.getAttributes(), wikiUrl, "OSRS Wiki Category:Bosses autocomplete entry; GearScape stats unavailable");
@@ -163,10 +159,6 @@ public class BossDataService
 		}
 		catch (IOException | InterruptedException ex)
 		{
-			if (ex instanceof InterruptedException)
-			{
-				Thread.currentThread().interrupt();
-			}
 			return new BossTarget(entry.getName(), entry.getId(), entry.getCombatLevel(), 60, 60, 60, 60, 60, 100,
 				0, 0, 0, 0, 0, entry.getAttributes(), OsrsWikiApiClient.pageUrl(cleanWikiTitle(entry.getName())),
 				"GearScape boss index fallback; detail fetch failed: " + ex.getMessage());
