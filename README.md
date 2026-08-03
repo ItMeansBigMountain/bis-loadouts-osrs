@@ -27,15 +27,24 @@ The plugin is intentionally lightweight for its first Plugin Hub candidate relea
 - Local fallback boss and gear data so the panel remains usable if a public data source is unavailable.
 - Unit-tested recommendation and boss-data helper logic.
 
-## Current boss/data behavior
+## External APIs
 
-BIS Loadouts uses local fallbacks immediately, then refreshes public read-only data in the background when available:
+BIS Loadouts makes read-only `GET` requests to these public services:
 
-- OSRS Wiki MediaWiki API for boss page lookup and boss-name autocomplete support.
-- OSRS Wiki real-time price mapping as an item sanity filter.
-- GearScape public endpoints for machine-readable monster and equipment/weapon stat rows.
+- **GearScape API** — monster and gear stat data:
+  - `https://api.gearscape.net/api/monster`
+  - `https://api.gearscape.net/api/monster/id/{id}`
+  - `https://api.gearscape.net/api/equipment/all`
+  - `https://api.gearscape.net/api/weapon/all`
+- **OSRS Wiki Prices API** — item ID/name metadata used for item sanity filtering:
+  - `https://prices.runescape.wiki/api/v1/osrs/mapping`
+- **OSRS Wiki MediaWiki API** — boss category listings and page-name searches:
+  - `https://oldschool.runescape.wiki/api.php`
+- **OSRS Wiki pages** — opens the selected item's public wiki page when the player clicks it:
+  - `https://oldschool.runescape.wiki/w/{page}`
+- **RuneLite Client API** — reads local combat stats and supplies item icons inside RuneLite. This is a local client integration, not a separate external server request.
 
-The plugin uses a descriptive User-Agent for public HTTP requests and does not require API keys.
+The plugin has no custom backend, account system, API keys, uploads, or telemetry. Public API failures fall back to bundled/local data.
 
 More detail is in [`docs/wiki-gearscape-integration.md`](docs/wiki-gearscape-integration.md).
 
