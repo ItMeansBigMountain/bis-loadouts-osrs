@@ -10,11 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class BisLoadoutsPanelTest
 {
@@ -42,6 +46,32 @@ public class BisLoadoutsPanelTest
 			mode.doClick();
 
 			assertEquals("1H", onlyHandednessButton(panel).getText());
+		});
+	}
+
+	@Test
+	public void bossAutocompleteUsesShorthandAndStaysCompact() throws Exception
+	{
+		final BisLoadoutsPanel[] panel = new BisLoadoutsPanel[1];
+		SwingUtilities.invokeAndWait(() -> {
+			panel[0] = new BisLoadoutsPanel();
+			panel[0].showWaitingForLogin(Arrays.asList("Zulrah", "Vorkath", "King Black Dragon", "TzTok-Jad",
+				"General Graardor", "Cerberus", "The Hueycoatl", "Phantom Muspah", "TzKal-Zuk",
+				"Demonic Brutus", "Brutus", "Yama", "Amoxliatl", "Scurrius"), "");
+			JComboBox<?> selector = comboBoxes(panel[0]).get(0);
+			((JTextField) selector.getEditor().getEditorComponent()).setText("kbd");
+		});
+		SwingUtilities.invokeAndWait(() -> {
+			JComboBox<?> selector = comboBoxes(panel[0]).get(0);
+			List<String> values = new java.util.ArrayList<>();
+			for (int i = 0; i < selector.getModel().getSize(); i++)
+			{
+				values.add(String.valueOf(selector.getModel().getElementAt(i)));
+			}
+			assertTrue(values.contains("King Black Dragon"));
+			assertTrue("autocomplete should stay compact", values.size() <= 13);
+			assertTrue("search purpose should be visible", labels(panel[0]).stream()
+				.anyMatch(label -> label.getText().contains("Search boss")));
 		});
 	}
 
@@ -79,6 +109,40 @@ public class BisLoadoutsPanelTest
 			if (component instanceof Container)
 			{
 				result.addAll(buttons((Container) component));
+			}
+		}
+		return result;
+	}
+
+	private static List<JLabel> labels(Container root)
+	{
+		java.util.ArrayList<JLabel> result = new java.util.ArrayList<>();
+		for (Component component : root.getComponents())
+		{
+			if (component instanceof JLabel)
+			{
+				result.add((JLabel) component);
+			}
+			if (component instanceof Container)
+			{
+				result.addAll(labels((Container) component));
+			}
+		}
+		return result;
+	}
+
+	private static List<JComboBox<?>> comboBoxes(Container root)
+	{
+		java.util.ArrayList<JComboBox<?>> result = new java.util.ArrayList<>();
+		for (Component component : root.getComponents())
+		{
+			if (component instanceof JComboBox)
+			{
+				result.add((JComboBox<?>) component);
+			}
+			if (component instanceof Container)
+			{
+				result.addAll(comboBoxes((Container) component));
 			}
 		}
 		return result;

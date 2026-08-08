@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -132,7 +131,7 @@ public class BisLoadoutsPanel extends PluginPanel
 
 	private void addControls(List<String> suggestions)
 	{
-		addTitle("Boss selection");
+		addTitle("Search boss");
 		addBossSelector(suggestions);
 		addSpacer();
 		addStyleControls();
@@ -169,6 +168,7 @@ public class BisLoadoutsPanel extends PluginPanel
 	private void configureBossSelector()
 	{
 		bossSelector.setEditable(true);
+		bossSelector.setToolTipText("Search bosses by name or shorthand (KBD, Jad, Cerb, Huey)");
 		bossSelector.setModel(bossModel);
 		Dimension bossSelectorSize = new Dimension(CONTROL_WIDTH, 28);
 		bossSelector.setPreferredSize(bossSelectorSize);
@@ -178,6 +178,7 @@ public class BisLoadoutsPanel extends PluginPanel
 		if (bossSelector.getEditor().getEditorComponent() instanceof JTextField)
 		{
 			JTextField editor = (JTextField) bossSelector.getEditor().getEditorComponent();
+			editor.setToolTipText(bossSelector.getToolTipText());
 			editor.getDocument().addDocumentListener(new DocumentListener()
 			{
 				@Override public void insertUpdate(DocumentEvent event) { filterLater(editor.getText()); }
@@ -659,25 +660,15 @@ public class BisLoadoutsPanel extends PluginPanel
 		{
 			text = "";
 		}
-		String normalized = text.toLowerCase(Locale.ROOT).trim();
 		updatingBossSelector = true;
 		bossModel.removeAllElements();
 		if (!text.isEmpty() && !allBossSuggestions.contains(text))
 		{
 			bossModel.addElement(text);
 		}
-		int added = 0;
-		for (String suggestion : allBossSuggestions)
+		for (String suggestion : BossSearchMatcher.rank(allBossSuggestions, text, 12))
 		{
-			if (normalized.isEmpty() || suggestion.toLowerCase(Locale.ROOT).contains(normalized))
-			{
-				bossModel.addElement(suggestion);
-				added++;
-			}
-			if (added >= 60)
-			{
-				break;
-			}
+			bossModel.addElement(suggestion);
 		}
 		bossSelector.getEditor().setItem(text);
 		updatingBossSelector = false;

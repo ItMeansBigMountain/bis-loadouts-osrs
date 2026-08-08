@@ -115,9 +115,9 @@ public class BossDataService
 
 	public List<String> searchBossNameSuggestions(String query, int limit)
 	{
-		String normalized = normalize(query);
 		return bossIndex.get().stream()
-			.sorted(Comparator.comparingInt(entry -> matchScore(normalized, normalize(entry.getName()))))
+			.filter(entry -> weightedMatchScore(query, entry) != Integer.MAX_VALUE)
+			.sorted(Comparator.comparingInt(entry -> weightedMatchScore(query, entry)))
 			.map(BossIndexEntry::getName)
 			.distinct()
 			.limit(limit)
@@ -175,37 +175,19 @@ public class BossDataService
 
 	private Optional<BossIndexEntry> findBestBossMatch(String query)
 	{
-		String normalized = normalize(query);
 		return bossIndex.get().stream()
-			.min(Comparator.comparingInt(entry -> weightedMatchScore(normalized, entry)));
+			.filter(entry -> weightedMatchScore(query, entry) != Integer.MAX_VALUE)
+			.min(Comparator.comparingInt(entry -> weightedMatchScore(query, entry)));
 	}
 
 	private static int weightedMatchScore(String query, BossIndexEntry entry)
 	{
-		int baseScore = matchScore(query, normalize(entry.getName()));
+		int baseScore = BossSearchMatcher.score(query, entry.getName());
+		if (baseScore == Integer.MAX_VALUE)
+		{
+			return Integer.MAX_VALUE;
+		}
 		return entry.hasGearscapeId() ? baseScore : baseScore + 50;
-	}
-
-	private static int matchScore(String query, String candidate)
-	{
-		if (candidate.equals(query))
-		{
-			return 0;
-		}
-		String candidateBase = candidate.replaceAll(" \\(.*?\\)", "").trim();
-		if (candidateBase.equals(query))
-		{
-			return 1;
-		}
-		if (candidate.contains(query))
-		{
-			return 10 + candidate.length() - query.length();
-		}
-		if (query.contains(candidateBase))
-		{
-			return 20 + query.length() - candidateBase.length();
-		}
-		return 1000 + levenshtein(query, candidateBase);
 	}
 
 	private BossTarget fetchBossDetails(BossIndexEntry entry) throws IOException, InterruptedException
@@ -565,25 +547,7 @@ public class BossDataService
 
 	private static String normalize(String value)
 	{
-		return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9 ]", " ").replaceAll("\\s+", " ").trim();
-	}
-
-	private static int levenshtein(String a, String b)
-	{
-		int[] costs = new int[b.length() + 1];
-		for (int j = 0; j < costs.length; j++) costs[j] = j;
-		for (int i = 1; i <= a.length(); i++)
-		{
-			costs[0] = i;
-			int nw = i - 1;
-			for (int j = 1; j <= b.length(); j++)
-			{
-				int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]), a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
-				nw = costs[j];
-				costs[j] = cj;
-			}
-		}
-		return costs[b.length()];
+		return BossSearchMatcher.normalize(value);
 	}
 
 	private static int intValue(JsonObject obj, String key, int fallback)

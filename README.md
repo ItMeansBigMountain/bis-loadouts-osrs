@@ -30,7 +30,7 @@ The plugin is intentionally lightweight for its first Plugin Hub candidate relea
 - Elemental weapon handling for Harmonised nightmare staff, smoke battlestaff, and Twinflame staff; powered staves do not incorrectly receive elemental bonuses.
 - One-handed/two-handed weapon handling with offhand recommendations when applicable.
 - Ranged ammo compatibility filtering for arrows, bolts, darts, and no-ammo weapons.
-- Boss search/autocomplete backed by public boss data, with blank search supported for general best-by-stats gear.
+- Fast boss search/autocomplete backed by public boss data, with typo tolerance, common shorthand such as `KBD`, `Jad`, `Cerb`, and `Huey`, token-order matching, and blank search for general best-by-stats gear.
 - Budget tiers: Budget, Midgame, Rich, and No limit.
 - Boss defence guide ordered from weakest style to strongest/avoid style.
 - DPS-per-style section for quick comparison across combat styles.
