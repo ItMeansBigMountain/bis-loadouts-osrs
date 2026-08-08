@@ -1,8 +1,16 @@
 # BIS Loadouts
 
+## Hit more. Hit harder. Waste less GP.
+
+**Pick the style the boss hates, stack enough accuracy to land hits, then stack damage without slowing yourself down—or blowing the beer money. For Magic, match the elemental weakness.**
+
+![The pub-napkin DPS formula: accuracy times damage divided by attack time](assets/readme/formula.svg)
+
 BIS Loadouts is a RuneLite external plugin for boss-focused gear recommendations. It reads the local player's combat stats, lets the player choose a boss, combat style, and budget tier, then shows a compact side panel with best-available gear by slot, estimated DPS, hit chance, max hit, and simple boss defence guidance.
 
 The plugin is intentionally lightweight for its first Plugin Hub candidate release. It is designed as an in-client gear advisor and pre-fight sanity check, not a full GearScape-equivalent DPS simulator.
+
+> Saved you from buying the wrong shiny stick? [Buy me a coffee](https://buymeacoffee.com/affanfareev) or toss **Oyama** a voluntary tip in-game. No GP-for-cash swaps—just community support. Daddy needs a ZCB.
 
 ## Screenshots
 
@@ -28,6 +36,10 @@ The plugin is intentionally lightweight for its first Plugin Hub candidate relea
 - DPS-per-style section for quick comparison across combat styles.
 - Local fallback boss and gear data so the panel remains usable if a public data source is unavailable.
 - Unit-tested recommendation and boss-data helper logic.
+
+## How it works
+
+![BIS Loadouts architecture: player setup and live game data flow through the combat engine into a ranked loadout](assets/readme/architecture.svg)
 
 ## External APIs
 

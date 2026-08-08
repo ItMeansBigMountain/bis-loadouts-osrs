@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+  <title id="title">Simple OSRS gear formula</title>
+  <desc id="desc">Good damage per second comes from landing hits, hitting hard, and attacking quickly.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17140f"/><stop offset="1" stop-color="#302617"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity=".4"/></filter>
+    <style>
+      .title{font:700 34px Arial,sans-serif;fill:#f2d28a}.sub{font:18px Arial,sans-serif;fill:#d4cbb9}
+      .card{fill:#352d22;stroke-width:4;rx:18;filter:url(#shadow)}.h{font:700 24px Arial,sans-serif}.big{font:700 48px Arial,sans-serif}.t{font:17px Arial,sans-serif;fill:#e3dac8}
+      .op{font:700 48px Arial,sans-serif;fill:#d7b160}.footer{font:700 21px Arial,sans-serif;fill:#d9eccf}
+    </style>
+  </defs>
+  <rect width="1200" height="430" rx="24" fill="url(#bg)"/>
+  <text x="600" y="55" text-anchor="middle" class="title">THE PUB-NAPKIN DPS FORMULA</text>
+  <text x="600" y="86" text-anchor="middle" class="sub">You do not need a spreadsheet cape. Just remember three things.</text>
+
+  <rect class="card" x="55" y="125" width="285" height="190" stroke="#6ba0d9"/>
+  <text x="197" y="168" text-anchor="middle" class="h" fill="#a9d2ff">LAND THE HIT</text>
+  <text x="197" y="225" text-anchor="middle" class="big" fill="#a9d2ff">ACCURACY</text>
+  <text x="197" y="270" text-anchor="middle" class="t">Match your attack style</text><text x="197" y="293" text-anchor="middle" class="t">to the boss's weak defence.</text>
+
+  <text x="375" y="235" text-anchor="middle" class="op">×</text>
+
+  <rect class="card" x="410" y="125" width="285" height="190" stroke="#d86655"/>
+  <text x="552" y="168" text-anchor="middle" class="h" fill="#ffb0a3">HIT HARD</text>
+  <text x="552" y="225" text-anchor="middle" class="big" fill="#ffb0a3">DAMAGE</text>
+  <text x="552" y="270" text-anchor="middle" class="t">Stack strength or magic damage.</text><text x="552" y="293" text-anchor="middle" class="t">Match elemental weaknesses.</text>
+
+  <text x="730" y="235" text-anchor="middle" class="op">÷</text>
+
+  <rect class="card" x="765" y="125" width="380" height="190" stroke="#6fb383"/>
+  <text x="955" y="168" text-anchor="middle" class="h" fill="#a9e8b8">DON'T SWING LIKE A DRUNK GIANT</text>
+  <text x="955" y="225" text-anchor="middle" class="big" fill="#a9e8b8">ATTACK TIME</text>
+  <text x="955" y="270" text-anchor="middle" class="t">Faster attacks mean more chances</text><text x="955" y="293" text-anchor="middle" class="t">to turn the boss into floor loot.</text>
+
+  <text x="600" y="375" text-anchor="middle" class="footer">More hits × bigger hits ÷ less waiting = more DPS. That's the whole pint.</text>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">BIS Loadouts architecture</title>
+  <desc id="desc">Player stats, budget, boss data, and gear data flow through OSRS combat rules into ranked loadouts.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#15130f"/><stop offset="1" stop-color="#282116"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity=".35"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#d6aa55"/></marker>
+    <style>
+      .title{font:700 34px Arial,sans-serif;fill:#f2d28a}.sub{font:18px Arial,sans-serif;fill:#c8bfae}
+      .box{fill:#332b20;stroke:#8b6b32;stroke-width:3;rx:14;filter:url(#shadow)}
+      .engine{fill:#4a351d;stroke:#e2b65b;stroke-width:4;rx:18;filter:url(#shadow)}
+      .h{font:700 22px Arial,sans-serif;fill:#fff0be}.t{font:16px Arial,sans-serif;fill:#ded5c4}
+      .arrow{stroke:#d6aa55;stroke-width:4;fill:none;marker-end:url(#arrow)}
+      .badge{fill:#1e4430;stroke:#6fb383;stroke-width:2;rx:10}.bt{font:700 17px Arial,sans-serif;fill:#c9f4d3}
+    </style>
+  </defs>
+  <rect width="1200" height="620" fill="url(#bg)" rx="24"/>
+  <text x="600" y="55" text-anchor="middle" class="title">HOW BIS LOADOUTS PICKS YOUR GEAR</text>
+  <text x="600" y="87" text-anchor="middle" class="sub">Real stats in. OSRS combat rules in the middle. Less bank-standing out.</text>
+
+  <rect class="box" x="55" y="135" width="250" height="120"/>
+  <text class="h" x="180" y="173" text-anchor="middle">YOUR SETUP</text>
+  <text class="t" x="80" y="208">• Combat levels</text><text class="t" x="80" y="234">• Budget &amp; handedness</text>
+
+  <rect class="box" x="55" y="345" width="250" height="145"/>
+  <text class="h" x="180" y="383" text-anchor="middle">LIVE GAME DATA</text>
+  <text class="t" x="80" y="418">• GearScape items &amp; bosses</text><text class="t" x="80" y="444">• OSRS Wiki fallback</text><text class="t" x="80" y="470">• Prices &amp; requirements</text>
+
+  <path class="arrow" d="M305 195 H410"/><path class="arrow" d="M305 417 H410"/>
+
+  <rect class="engine" x="415" y="150" width="370" height="325"/>
+  <text class="h" x="600" y="194" text-anchor="middle">COMBAT ENGINE</text>
+  <rect class="badge" x="460" y="220" width="280" height="42"/><text class="bt" x="600" y="247" text-anchor="middle">1. Find the weakest defence</text>
+  <rect class="badge" x="460" y="278" width="280" height="42"/><text class="bt" x="600" y="305" text-anchor="middle">2. Calculate hit chance</text>
+  <rect class="badge" x="460" y="336" width="280" height="42"/><text class="bt" x="600" y="363" text-anchor="middle">3. Calculate max hit &amp; speed</text>
+  <rect class="badge" x="460" y="394" width="280" height="42"/><text class="bt" x="600" y="421" text-anchor="middle">4. Apply elemental weakness</text>
+
+  <path class="arrow" d="M785 312 H890"/>
+  <rect class="box" x="895" y="210" width="250" height="205"/>
+  <text class="h" x="1020" y="250" text-anchor="middle">YOUR LOADOUT</text>
+  <text class="t" x="920" y="286">• Best style for the boss</text><text class="t" x="920" y="316">• Gear within your budget</text><text class="t" x="920" y="346">• Correct spell &amp; element</text><text class="t" x="920" y="376">• DPS and upgrade options</text>
+
+  <text class="sub" x="600" y="555" text-anchor="middle">No mystery sauce: every recommendation is stats + rules + your budget.</text>
+</svg>
