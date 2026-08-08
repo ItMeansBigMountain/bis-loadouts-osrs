@@ -40,11 +40,14 @@ public class BossDataService
 		"None - best overall for my stats", "General PvM", "Scurrius", "Giant Mole", "Barrows", "Fight Caves", "Fight Kiln", "Inferno",
 		"Vorkath", "Zulrah", "Phantom Muspah", "The Gauntlet", "Corrupted Gauntlet", "Tombs of Amascut", "Chambers of Xeric",
 		"Theatre of Blood", "Nex", "Nightmare", "Phosani's Nightmare", "Duke Sucellus", "The Leviathan", "Vardorvis", "The Whisperer",
-		"Abyssal Sire", "Alchemical Hydra", "Araxxor", "Artio", "Callisto", "Calvar'ion", "Vet'ion", "Venenatis", "Spindel",
+		"Abyssal Sire", "Alchemical Hydra", "Araxxor", "Amoxliatl", "The Hueycoatl", "Royal Titans", "Branda the Fire Queen",
+		"Eldric the Ice King", "Yama", "Doom of Mokhaiotl", "Gemstone Crab", "Brutus", "Demonic Brutus", "Maggot King", "Mad Angel",
+		"Artio", "Callisto", "Calvar'ion", "Vet'ion", "Venenatis", "Spindel",
 		"Cerberus", "Commander Zilyana", "General Graardor", "K'ril Tsutsaroth", "Kree'arra", "Dagannoth Prime", "Dagannoth Rex",
 		"Dagannoth Supreme", "Kalphite Queen", "King Black Dragon", "Kraken", "Thermonuclear smoke devil", "Corporeal Beast",
 		"Sarachnis", "Skotizo", "Tempoross", "Wintertodt", "Zalcano", "Hespori", "Obor", "Bryophyta", "Grotesque Guardians"
 	);
+	private static final Map<String, BossTarget> LOCAL_BOSS_TARGETS = buildLocalBossTargets();
 
 	private final HttpClient httpClient;
 	private final OsrsWikiApiClient wikiClient;
@@ -142,6 +145,11 @@ public class BossDataService
 		BossIndexEntry entry = match.get();
 		if (!entry.hasGearscapeId())
 		{
+			BossTarget localTarget = LOCAL_BOSS_TARGETS.get(normalize(entry.getName()));
+			if (localTarget != null)
+			{
+				return localTarget;
+			}
 			String wikiUrl = OsrsWikiApiClient.pageUrl(entry.getName());
 			try
 			{
@@ -264,6 +272,46 @@ public class BossDataService
 		}
 
 		return merged.values().stream().sorted(Comparator.comparing(BossIndexEntry::getName)).collect(Collectors.toList());
+	}
+
+	private static Map<String, BossTarget> buildLocalBossTargets()
+	{
+		Map<String, BossTarget> targets = new HashMap<>();
+		addLocalBoss(targets, "Amoxliatl", 263, 520, 0, 0, 80, 170, 0, 100, 100, 40, 100, 200,
+			Arrays.asList("boss", "spectral"), "25 September 2024");
+		addLocalBoss(targets, "The Hueycoatl", 642, 2500, 150, 50, 125, 50, 50, 100, 100, 0, 200, 350,
+			Arrays.asList("boss", "draconic"), "25 September 2024");
+		addLocalBoss(targets, "Royal Titans", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
+			Arrays.asList("boss", "giant"), "5 February 2025");
+		addLocalBoss(targets, "Branda the Fire Queen", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
+			Arrays.asList("boss", "giant", "fiery"), "5 February 2025");
+		addLocalBoss(targets, "Eldric the Ice King", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
+			Arrays.asList("boss", "giant", "icy"), "5 February 2025");
+		addLocalBoss(targets, "Yama", 1238, 2500, 320, 350, 225, 250, 210, 100, 80, 333, 60, 220,
+			Arrays.asList("boss", "demon"), "14 May 2025");
+		addLocalBoss(targets, "Doom of Mokhaiotl", 558, 525, 300, 190, 90, 275, 110, 300, 300, 60, 160, 160,
+			Arrays.asList("boss", "demon"), "23 July 2025");
+		addLocalBoss(targets, "Gemstone Crab", 160, 300, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+			Arrays.asList("boss", "training", "effectively infinite HP; 300 effective HP for ruby bolts"), "23 July 2025");
+		addLocalBoss(targets, "Brutus", 30, 58, 12, 25, 10, 8, 1, -7, -7, -7, -3, -7,
+			Arrays.asList("boss", "free-to-play"), "25 February 2026");
+		addLocalBoss(targets, "Demonic Brutus", 1224, 750, 380, 418, 200, 272, 1, 182, 65, 216, 520, 418,
+			Arrays.asList("boss", "hard mode"), "25 February 2026");
+		addLocalBoss(targets, "Maggot King", 741, 1500, 200, 250, 200, 200, 300, 172, 100, 45, 150, 158,
+			Arrays.asList("boss"), "30 June 2026");
+		addLocalBoss(targets, "Mad Angel", 588, 755, 150, 230, 175, 150, 250, 60, 80, 40, 185, 185,
+			Arrays.asList("boss", "golem"), "29 July 2026");
+		return Collections.unmodifiableMap(targets);
+	}
+
+	private static void addLocalBoss(Map<String, BossTarget> targets, String name, int combat, int hitpoints,
+		int attack, int strength, int defence, int magic, int ranged, int defStab, int defSlash, int defCrush,
+		int defMagic, int defRanged, List<String> attributes, String releaseDate)
+	{
+		targets.put(normalize(name), new BossTarget(name, -1, combat, loadoutTarget(attack), loadoutTarget(strength),
+			loadoutTarget(defence), loadoutTarget(ranged), loadoutTarget(magic), hitpoints, defStab, defSlash, defCrush,
+			defMagic, defRanged, attributes, OsrsWikiApiClient.pageUrl(name),
+			"OSRS Wiki local profile; released " + releaseDate + "; used when GearScape detail is unavailable"));
 	}
 
 	private static List<BossIndexEntry> fallbackBossEntries()
