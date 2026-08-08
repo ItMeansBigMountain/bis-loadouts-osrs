@@ -231,6 +231,7 @@ public class BossDataService
 			loadoutTarget(intValue(monster, "level_defence", combat / 3)),
 			loadoutTarget(intValue(monster, "level_ranged", combat / 3)),
 			loadoutTarget(intValue(monster, "level_magic", combat / 3)),
+			intValue(monster, "level_magic", combat / 3),
 			intValue(monster, "level_hp", 100),
 			intValue(monster, "def_stab", 0),
 			intValue(monster, "def_slash", 0),
@@ -290,9 +291,9 @@ public class BossDataService
 		addLocalBoss(targets, "Eldric the Ice King", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
 			ElementalType.FIRE, 50, Arrays.asList("boss", "giant", "icy"), "5 February 2025");
 		addLocalBoss(targets, "Yama", 1238, 2500, 320, 350, 225, 250, 210, 100, 80, 333, 60, 220,
-			ElementalType.WATER, 50, Arrays.asList("boss", "demon"), "14 May 2025");
+			ElementalType.WATER, 50, Arrays.asList("boss", "demon", "120% demonbane vulnerability"), "14 May 2025");
 		addLocalBoss(targets, "Doom of Mokhaiotl", 558, 525, 300, 190, 90, 275, 110, 300, 300, 60, 160, 160,
-			ElementalType.NONE, 0, Arrays.asList("boss", "demon"), "23 July 2025");
+			ElementalType.NONE, 0, Arrays.asList("boss", "demon", "demonic shield requires demonbane at delve 3+"), "23 July 2025");
 		addLocalBoss(targets, "Gemstone Crab", 160, 300, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 			ElementalType.NONE, 0, Arrays.asList("boss", "training", "effectively infinite HP; 300 effective HP for ruby bolts"), "23 July 2025");
 		addLocalBoss(targets, "Brutus", 30, 58, 12, 25, 10, 8, 1, -7, -7, -7, -3, -7,
@@ -312,8 +313,9 @@ public class BossDataService
 		List<String> attributes, String releaseDate)
 	{
 		targets.put(normalize(name), new BossTarget(name, -1, combat, loadoutTarget(attack), loadoutTarget(strength),
-			loadoutTarget(defence), loadoutTarget(ranged), loadoutTarget(magic), hitpoints, defStab, defSlash, defCrush,
-			defMagic, defRanged, elementalWeakness, elementalWeaknessPercent, attributes, OsrsWikiApiClient.pageUrl(name),
+			loadoutTarget(defence), loadoutTarget(ranged), loadoutTarget(magic), magic, hitpoints, defStab, defSlash,
+			defCrush, defMagic, defRanged, elementalWeakness, elementalWeaknessPercent, attributes,
+			OsrsWikiApiClient.pageUrl(name),
 			"OSRS Wiki local profile; released " + releaseDate + "; used when GearScape detail is unavailable"));
 	}
 

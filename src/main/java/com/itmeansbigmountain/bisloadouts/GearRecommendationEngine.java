@@ -166,15 +166,28 @@ public final class GearRecommendationEngine
 		boolean usesElementalWeakness = style == CombatStyle.MAGIC && weapon != null && boss.hasElementalWeakness()
 			&& ElementalSpellScaling.canCastElementalSpell(weapon.getName())
 			&& ElementalSpellScaling.bestBaseMaxHit(boss.getElementalWeakness(), stats.getMagic()) > 0;
+		if (style == CombatStyle.MAGIC && boss.hasNpcMagicLevel())
+		{
+			int accuracyBonusPercent = usesElementalWeakness
+				? boss.getElementalWeaknessPercent() + elementalWeaponSpellBonus(weapon) : 0;
+			hitChance = magicHitChance(selected, stats.getMagic(), boss, accuracyBonusPercent);
+		}
 		if (usesElementalWeakness)
 		{
 			String spell = ElementalSpellScaling.bestSpellName(boss.getElementalWeakness(), stats.getMagic());
 			int baseMaxHit = ElementalSpellScaling.bestBaseMaxHit(boss.getElementalWeakness(), stats.getMagic());
+			if (spell.endsWith(" Bolt") && containsItem(selected, "chaos gauntlets"))
+			{
+				baseMaxHit += 3;
+			}
 			int magicDamagePercent = selected.values().stream().mapToInt(GearItem::getStrengthBonus).sum()
 				+ elementalWeaponSpellBonus(weapon);
 			maxHit = ElementalSpellScaling.maxHit(baseMaxHit, magicDamagePercent, boss.getElementalWeaknessPercent());
-			hitChance = clamp(ElementalSpellScaling.applyAccuracyRollMultiplier(hitChance,
-				boss.getElementalWeaknessPercent() + elementalWeaponSpellBonus(weapon)), 0.05D, 0.98D);
+			if (!boss.hasNpcMagicLevel())
+			{
+				hitChance = clamp(ElementalSpellScaling.applyAccuracyRollMultiplier(hitChance,
+					boss.getElementalWeaknessPercent() + elementalWeaponSpellBonus(weapon)), 0.05D, 0.98D);
+			}
 			attackSpeed = elementalAttackSpeed(weapon);
 			warnings.add(boss.getElementalWeaknessPercent() + "% " + boss.getElementalWeakness().displayName()
 				+ " weakness: cast " + spell + ". The weakness adds " + boss.getElementalWeaknessPercent()
@@ -199,6 +212,20 @@ public final class GearRecommendationEngine
 		int loadoutFit = calculateLoadoutFit(boss, style, stats, selected, warnings);
 
 		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, loadoutFit, warnings, Collections.emptyList());
+	}
+
+	private static double magicHitChance(Map<GearSlot, GearItem> selected, int magicLevel, BossTarget boss,
+		int conditionalAccuracyPercent)
+	{
+		int magicAttackBonus = selected.values().stream().mapToInt(GearItem::getAttackBonus).sum();
+		long attackRoll = ElementalSpellScaling.magicAttackRoll(magicLevel, magicAttackBonus, conditionalAccuracyPercent);
+		long defenceRoll = ElementalSpellScaling.npcMagicDefenceRoll(boss.getNpcMagicLevel(), boss.getDefMagic());
+		return ElementalSpellScaling.hitChance(attackRoll, defenceRoll);
+	}
+
+	private static boolean containsItem(Map<GearSlot, GearItem> selected, String itemName)
+	{
+		return selected.values().stream().anyMatch(item -> item.getName().equalsIgnoreCase(itemName));
 	}
 
 	private static int itemScore(GearItem item, BossTarget boss, CombatStyle style, PlayerStats stats)

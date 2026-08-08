@@ -13,6 +13,7 @@ public class BossTarget
 	private final int targetDefence;
 	private final int targetRanged;
 	private final int targetMagic;
+	private final int npcMagicLevel;
 	private final int hitpoints;
 	private final int defStab;
 	private final int defSlash;
@@ -38,6 +39,16 @@ public class BossTarget
 		int defRanged, ElementalType elementalWeakness, int elementalWeaknessPercent, List<String> attributes,
 		String wikiUrl, String source)
 	{
+		this(label, id, targetCombat, targetAttack, targetStrength, targetDefence, targetRanged, targetMagic, -1,
+			hitpoints, defStab, defSlash, defCrush, defMagic, defRanged, elementalWeakness, elementalWeaknessPercent,
+			attributes, wikiUrl, source);
+	}
+
+	public BossTarget(String label, int id, int targetCombat, int targetAttack, int targetStrength, int targetDefence,
+		int targetRanged, int targetMagic, int npcMagicLevel, int hitpoints, int defStab, int defSlash, int defCrush,
+		int defMagic, int defRanged, ElementalType elementalWeakness, int elementalWeaknessPercent,
+		List<String> attributes, String wikiUrl, String source)
+	{
 		this.label = label;
 		this.id = id;
 		this.targetCombat = Math.max(1, targetCombat);
@@ -46,6 +57,7 @@ public class BossTarget
 		this.targetDefence = Math.max(1, targetDefence);
 		this.targetRanged = Math.max(1, targetRanged);
 		this.targetMagic = Math.max(1, targetMagic);
+		this.npcMagicLevel = npcMagicLevel;
 		this.hitpoints = Math.max(1, hitpoints);
 		this.defStab = defStab;
 		this.defSlash = defSlash;
@@ -74,6 +86,8 @@ public class BossTarget
 	public int getTargetDefence() { return targetDefence; }
 	public int getTargetRanged() { return targetRanged; }
 	public int getTargetMagic() { return targetMagic; }
+	public int getNpcMagicLevel() { return npcMagicLevel; }
+	public boolean hasNpcMagicLevel() { return npcMagicLevel >= 0; }
 	public int getHitpoints() { return hitpoints; }
 	public int getDefStab() { return defStab; }
 	public int getDefSlash() { return defSlash; }

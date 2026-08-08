@@ -35,6 +35,10 @@ public class ElementalSpellScalingTest
 		assertEquals(1.5D, ElementalSpellScaling.accuracyRollMultiplier(50), 0.0001D);
 		assertEquals(0.8333D, ElementalSpellScaling.applyAccuracyRollMultiplier(0.75D, 50), 0.0001D);
 		assertEquals(0.5833D, ElementalSpellScaling.applyAccuracyRollMultiplier(0.40D, 50), 0.0001D);
+		assertEquals(17548L, ElementalSpellScaling.magicAttackRoll(99, 100, 0));
+		assertEquals(26322L, ElementalSpellScaling.magicAttackRoll(99, 100, 50));
+		assertEquals(17876L, ElementalSpellScaling.npcMagicDefenceRoll(100, 100));
+		assertEquals(0.660411D, ElementalSpellScaling.hitChance(26322L, 17876L), 0.000001D);
 	}
 
 	@Test

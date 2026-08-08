@@ -64,6 +64,26 @@ final class ElementalSpellScaling
 		return 1.0D - (1.0D - chance) / multiplier;
 	}
 
+	static long magicAttackRoll(int visibleMagicLevel, int magicAttackBonus, int conditionalAccuracyPercent)
+	{
+		long ordinaryRoll = (long) (Math.max(1, visibleMagicLevel) + 8) * (Math.max(-63, magicAttackBonus) + 64L);
+		return ordinaryRoll * (100L + Math.max(0, conditionalAccuracyPercent)) / 100L;
+	}
+
+	static long npcMagicDefenceRoll(int npcMagicLevel, int magicDefenceBonus)
+	{
+		return (long) (Math.max(0, npcMagicLevel) + 9) * (Math.max(-63, magicDefenceBonus) + 64L);
+	}
+
+	static double hitChance(long attackRoll, long defenceRoll)
+	{
+		if (attackRoll > defenceRoll)
+		{
+			return 1.0D - (defenceRoll + 2.0D) / (2.0D * (attackRoll + 1.0D));
+		}
+		return attackRoll / (2.0D * (defenceRoll + 1.0D));
+	}
+
 	static boolean canCastElementalSpell(String weaponName)
 	{
 		String name = weaponName == null ? "" : weaponName.toLowerCase(Locale.ROOT).trim();
