@@ -137,19 +137,29 @@ public class BisLoadoutsPanel extends PluginPanel
 		addSpacer();
 		addStyleControls();
 		addSpacer();
+		JPanel analyzeRow = new JPanel(new BorderLayout(4, 0));
+		analyzeRow.setOpaque(false);
+		analyzeRow.setAlignmentX(Component.CENTER_ALIGNMENT);
+		Dimension analyzeRowSize = new Dimension(CONTROL_WIDTH, 32);
+		analyzeRow.setPreferredSize(analyzeRowSize);
+		analyzeRow.setMinimumSize(analyzeRowSize);
+		analyzeRow.setMaximumSize(analyzeRowSize);
 		JButton analyze = new JButton("Analyze");
-		analyze.setAlignmentX(Component.CENTER_ALIGNMENT);
-		Dimension analyzeSize = new Dimension(CONTROL_WIDTH, 32);
-		analyze.setPreferredSize(analyzeSize);
-		analyze.setMinimumSize(new Dimension(140, 30));
-		analyze.setMaximumSize(analyzeSize);
+		analyze.setPreferredSize(new Dimension(CONTROL_WIDTH, 32));
+		analyze.setMinimumSize(new Dimension(112, 30));
 		analyze.addActionListener(event -> {
 			if (analyzeListener != null)
 			{
 				analyzeListener.accept(selectedBoss(), selectedStyle());
 			}
 		});
-		addCentered(analyze, CONTROL_WIDTH, 32);
+		analyzeRow.add(analyze, BorderLayout.CENTER);
+		JButton handedness = createHandednessToggle(currentRecommendation);
+		if (handedness != null)
+		{
+			analyzeRow.add(handedness, BorderLayout.EAST);
+		}
+		addCentered(analyzeRow, CONTROL_WIDTH, 32);
 		if (currentStatus != null && !currentStatus.isEmpty())
 		{
 			addMuted(summarizeStatus(currentStatus));
@@ -256,8 +266,7 @@ public class BisLoadoutsPanel extends PluginPanel
 		gridWrapper.setMaximumSize(new Dimension(PANEL_WIDTH, grid.getPreferredSize().height));
 		gridWrapper.add(grid, new GridBagConstraints());
 		content.add(gridWrapper);
-		addWeaponSetToggle(recommendation);
-		addGearInfoBlock("Gear controls", "• Arrows cycle gear. Left is strongest.\n• 1H/2H switches weapon lists.");
+		addGearInfoBlock("Gear controls", "• Arrows cycle gear. Left is strongest.\n• The button beside Analyze switches 1H/2H weapon lists.");
 		if (currentTarget != null)
 		{
 			addBossDefenseGuide(currentTarget);
@@ -442,28 +451,29 @@ public class BisLoadoutsPanel extends PluginPanel
 		return filtered.isEmpty() ? all : filtered;
 	}
 
-	private void addWeaponSetToggle(SetupRecommendation recommendation)
+	private JButton createHandednessToggle(SetupRecommendation recommendation)
 	{
+		if (recommendation == null)
+		{
+			return null;
+		}
 		List<GearItem> all = recommendation.getAlternativesForSlot(GearSlot.WEAPON);
 		boolean hasOneHanded = all.stream().anyMatch(item -> !item.isTwoHanded());
 		boolean hasTwoHanded = all.stream().anyMatch(GearItem::isTwoHanded);
 		if (!hasOneHanded || !hasTwoHanded)
 		{
-			return;
+			return null;
 		}
-		JPanel toggle = new JPanel(new GridBagLayout());
-		toggle.setOpaque(false);
-		JButton oneHanded = tinyButton("1H");
-		JButton twoHanded = tinyButton("2H");
-		oneHanded.setPreferredSize(new Dimension(34, 18));
-		twoHanded.setPreferredSize(new Dimension(34, 18));
-		oneHanded.setEnabled(Boolean.TRUE.equals(weaponTwoHandedMode));
-		twoHanded.setEnabled(!Boolean.TRUE.equals(weaponTwoHandedMode));
-		oneHanded.addActionListener(event -> switchWeaponSet(false));
-		twoHanded.addActionListener(event -> switchWeaponSet(true));
-		toggle.add(oneHanded);
-		toggle.add(twoHanded);
-		addCentered(toggle, CONTROL_WIDTH, 20);
+		displayedWeaponAlternatives(recommendation);
+		boolean twoHanded = Boolean.TRUE.equals(weaponTwoHandedMode);
+		JButton toggle = new JButton(twoHanded ? "2H" : "1H");
+		toggle.setMargin(new Insets(0, 4, 0, 4));
+		toggle.setPreferredSize(new Dimension(48, 32));
+		toggle.setMinimumSize(new Dimension(48, 30));
+		toggle.setMaximumSize(new Dimension(48, 32));
+		toggle.setToolTipText(twoHanded ? "Two-handed weapons — click for 1H" : "One-handed weapons — click for 2H");
+		toggle.addActionListener(event -> switchWeaponSet(!twoHanded));
+		return toggle;
 	}
 
 	private void switchWeaponSet(boolean twoHanded)
