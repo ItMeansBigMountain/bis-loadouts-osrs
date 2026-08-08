@@ -41,6 +41,8 @@ public class BossDataServiceTest
 		assertEquals(1238, yama.getTargetCombat());
 		assertEquals(2500, yama.getHitpoints());
 		assertEquals(333, yama.getDefCrush());
+		assertEquals(ElementalType.WATER, yama.getElementalWeakness());
+		assertEquals(50, yama.getElementalWeaknessPercent());
 		assertTrue(yama.getSource().contains("OSRS Wiki local profile"));
 
 		BossTarget doom = service.resolveBoss("Doom of Mokhaiotl", BossProfile.GENERAL_PVM);

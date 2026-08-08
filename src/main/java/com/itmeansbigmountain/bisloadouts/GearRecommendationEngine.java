@@ -132,7 +132,7 @@ public final class GearRecommendationEngine
 				.filter(item -> item.supports(style))
 				.filter(item -> item.getPrice() <= budget.getMaxItemPrice())
 				.filter(item -> item.meetsRequirements(stats))
-				.sorted(Comparator.comparingInt(GearItem::scoreValue).reversed())
+				.sorted(Comparator.comparingInt((GearItem item) -> itemScore(item, boss, style, stats)).reversed())
 				.collect(Collectors.toList());
 			if (!alternatives.isEmpty())
 			{
@@ -163,10 +163,75 @@ public final class GearRecommendationEngine
 		double hitChance = clamp(0.35D + (styleLevel / 140.0D) + (gearScore / 900.0D) - targetPressure, 0.05D, 0.98D);
 		int maxHit = Math.max(1, (int) Math.round((styleDamageLevel(style, stats) / 8.0D) + selected.values().stream().mapToInt(GearItem::getStrengthBonus).sum() / 10.0D));
 		double attackSpeed = style == CombatStyle.MAGIC ? 2.4D : style == CombatStyle.RANGED ? 3.0D : 3.6D;
-		double dps = round(((maxHit * hitChance / 2.0D) / attackSpeed) * styleMultiplier(boss, style));
+		boolean usesElementalWeakness = style == CombatStyle.MAGIC && weapon != null && boss.hasElementalWeakness()
+			&& ElementalSpellScaling.canCastElementalSpell(weapon.getName())
+			&& ElementalSpellScaling.bestBaseMaxHit(boss.getElementalWeakness(), stats.getMagic()) > 0;
+		if (usesElementalWeakness)
+		{
+			String spell = ElementalSpellScaling.bestSpellName(boss.getElementalWeakness(), stats.getMagic());
+			int baseMaxHit = ElementalSpellScaling.bestBaseMaxHit(boss.getElementalWeakness(), stats.getMagic());
+			int magicDamagePercent = selected.values().stream().mapToInt(GearItem::getStrengthBonus).sum()
+				+ elementalWeaponSpellBonus(weapon);
+			maxHit = ElementalSpellScaling.maxHit(baseMaxHit, magicDamagePercent, boss.getElementalWeaknessPercent());
+			hitChance = clamp(ElementalSpellScaling.applyAccuracyRollMultiplier(hitChance,
+				boss.getElementalWeaknessPercent() + elementalWeaponSpellBonus(weapon)), 0.05D, 0.98D);
+			attackSpeed = elementalAttackSpeed(weapon);
+			warnings.add(boss.getElementalWeaknessPercent() + "% " + boss.getElementalWeakness().displayName()
+				+ " weakness: cast " + spell + ". The weakness adds " + boss.getElementalWeaknessPercent()
+				+ "% to its accuracy roll and base damage; powered staves do not benefit.");
+		}
+		else if (style == CombatStyle.MAGIC && boss.hasElementalWeakness())
+		{
+			String spell = ElementalSpellScaling.bestSpellName(boss.getElementalWeakness(), stats.getMagic());
+			if (!spell.isEmpty())
+			{
+				warnings.add(boss.getElementalWeaknessPercent() + "% " + boss.getElementalWeakness().displayName()
+					+ " weakness available with " + spell + "; the selected powered/non-standard staff receives no weakness bonus.");
+			}
+		}
+		if (style == CombatStyle.MAGIC && boss.getLabel().toLowerCase(Locale.ROOT).contains("royal titans"))
+		{
+			warnings.add("Royal Titans use opposite weaknesses: Branda is 50% weak to Water; Eldric is 50% weak to Fire. Twinflame can switch automatically when the required spells and runes are available.");
+		}
+		double elementalExtraHit = usesElementalWeakness ? elementalExtraHitMultiplier(weapon,
+			ElementalSpellScaling.bestSpellName(boss.getElementalWeakness(), stats.getMagic())) : 1.0D;
+		double dps = round(((maxHit * hitChance / 2.0D) / attackSpeed) * elementalExtraHit * styleMultiplier(boss, style));
 		int loadoutFit = calculateLoadoutFit(boss, style, stats, selected, warnings);
 
 		return new SetupRecommendation(boss.getLabel(), displayStyle(style, boss), selected, slotAlternatives, dps, hitChance, maxHit, loadoutFit, warnings, Collections.emptyList());
+	}
+
+	private static int itemScore(GearItem item, BossTarget boss, CombatStyle style, PlayerStats stats)
+	{
+		int score = item.scoreValue();
+		if (style == CombatStyle.MAGIC && item.getSlot() == GearSlot.WEAPON && boss.hasElementalWeakness()
+			&& ElementalSpellScaling.canCastElementalSpell(item.getName())
+			&& ElementalSpellScaling.bestBaseMaxHit(boss.getElementalWeakness(), stats.getMagic()) > 0)
+		{
+			score += boss.getElementalWeaknessPercent() * 4 + elementalWeaponSpellBonus(item) * 2;
+		}
+		return score;
+	}
+
+	private static int elementalWeaponSpellBonus(GearItem weapon)
+	{
+		String name = weapon == null ? "" : weapon.getName().toLowerCase(Locale.ROOT);
+		return name.contains("twinflame staff") || name.contains("smoke battlestaff") ? 10 : 0;
+	}
+
+	private static double elementalAttackSpeed(GearItem weapon)
+	{
+		String name = weapon == null ? "" : weapon.getName().toLowerCase(Locale.ROOT);
+		if (name.contains("harmonised nightmare staff")) return 2.4D;
+		if (name.contains("twinflame staff")) return 3.6D;
+		return 3.0D;
+	}
+
+	private static double elementalExtraHitMultiplier(GearItem weapon, String spellName)
+	{
+		String weaponName = weapon == null ? "" : weapon.getName().toLowerCase(Locale.ROOT);
+		boolean eligibleTier = spellName.endsWith("Bolt") || spellName.endsWith("Blast") || spellName.endsWith("Wave");
+		return weaponName.contains("twinflame staff") && eligibleTier ? 1.4D : 1.0D;
 	}
 
 	private static void filterAmmoForWeapon(Map<GearSlot, GearItem> selected, Map<GearSlot, List<GearItem>> slotAlternatives, GearItem weapon)
@@ -360,6 +425,9 @@ public final class GearRecommendationEngine
 	private static void addMagic(List<GearItem> items)
 	{
 		Set<CombatStyle> magic = EnumSet.of(CombatStyle.MAGIC);
+		items.add(item(GearSlot.WEAPON, "smoke battlestaff", magic, 30, 0, 0, 30, 0, 0, 12, 0, 2_000_000, "Autocasts standard spells with a hidden 10% accuracy and damage bonus."));
+		items.add(item(GearSlot.WEAPON, "twinflame staff", magic, 0, 0, 0, 60, 0, 0, 12, 0, 7_000_000, "6-tick standard-spell staff; +10% accuracy/damage and a 40% second hit for Bolt, Blast, and Wave spells."));
+		items.add(item(GearSlot.WEAPON, "harmonised nightmare staff", magic, 0, 0, 0, 82, 0, 0, 16, 15, 449_000_000, "One-handed 4-tick autocasting for offensive standard spells."));
 		items.add(item(GearSlot.WEAPON, "trident of the seas", magic, 0, 0, 0, 75, 0, 0, 25, 10, 45_000, "Baseline powered staff."));
 		items.add(item(GearSlot.WEAPON, "trident of the swamp", magic, 0, 0, 0, 75, 0, 0, 32, 16, 2_500_000, "Strong practical Zulrah staff."));
 		items.add(item(GearSlot.WEAPON, "sanguinesti staff", magic, 0, 0, 0, 82, 0, 0, 40, 24, 85_000_000, "High-end sustain option."));
@@ -370,9 +438,9 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.HEAD, "ahrim's hood", magic, 0, 0, 70, 70, 0, 0, 6, 1, 500_000, "Midgame magic."));
 		items.add(item(GearSlot.HEAD, "ancestral hat", magic, 0, 0, 65, 75, 0, 0, 8, 3, 58_000_000, "BiS-style magic."));
 		items.add(item(GearSlot.BODY, "mystic robe top", magic, 0, 0, 20, 40, 0, 0, 12, 0, 75_000, "Budget magic."));
-		items.add(item(GearSlot.BODY, "ahrim's robetop", magic, 0, 0, 70, 70, 0, 0, 30, 2, 4_500_000, "Midgame magic."));
+		items.add(item(GearSlot.BODY, "ahrim's robetop", magic, 0, 0, 70, 70, 0, 0, 30, 1, 4_500_000, "Midgame magic."));
 		items.add(item(GearSlot.BODY, "ancestral robe top", magic, 0, 0, 65, 75, 0, 0, 35, 3, 127_000_000, "BiS-style magic."));
-		items.add(item(GearSlot.LEGS, "ahrim's robeskirt", magic, 0, 0, 70, 70, 0, 0, 24, 2, 3_500_000, "Midgame magic."));
+		items.add(item(GearSlot.LEGS, "ahrim's robeskirt", magic, 0, 0, 70, 70, 0, 0, 24, 1, 3_500_000, "Midgame magic."));
 		items.add(item(GearSlot.LEGS, "ancestral robe bottom", magic, 0, 0, 65, 75, 0, 0, 26, 3, 88_000_000, "BiS-style magic."));
 		items.add(item(GearSlot.NECK, "occult necklace", magic, 0, 0, 1, 70, 0, 0, 12, 5, 450_000, "Huge cheap magic upgrade."));
 		items.add(item(GearSlot.CAPE, "imbued god cape", magic, 0, 0, 1, 75, 0, 0, 15, 2, 0, "Mage Arena II cape."));
@@ -380,8 +448,8 @@ public final class GearRecommendationEngine
 		items.add(item(GearSlot.HANDS, "barrows gloves", magic, 0, 0, 1, 1, 1, 1, 6, 0, 130_000, "Quest glove fallback."));
 		items.add(item(GearSlot.HANDS, "tormented bracelet", magic, 0, 0, 75, 75, 0, 0, 10, 5, 16_000_000, "High-impact magic glove."));
 		items.add(item(GearSlot.HANDS, "confliction gauntlets", magic, 0, 0, 1, 75, 0, 0, 20, 12, 80_000_000, "Current OSRS best-in-slot magic gloves; requires 90 Hitpoints in game."));
-		items.add(item(GearSlot.FEET, "eternal boots", magic, 0, 0, 75, 75, 0, 0, 8, 0, 5_000_000, "Magic boots."));
-		items.add(item(GearSlot.FEET, "aranea boots", EnumSet.of(CombatStyle.MAGIC, CombatStyle.RANGED), 0, 0, 1, 1, 1, 0, 6, 4, 1_500_000, "Current OSRS tribrid boots from Araxytes; no requirements, +5 magic, +6 ranged, +4 strength."));
+		items.add(item(GearSlot.FEET, "eternal boots", magic, 0, 0, 75, 75, 0, 0, 8, 1, 5_000_000, "Magic boots."));
+		items.add(item(GearSlot.FEET, "aranea boots", EnumSet.of(CombatStyle.MAGIC, CombatStyle.RANGED), 0, 0, 1, 1, 1, 0, 6, 0, 1_500_000, "Current OSRS tribrid boots from Araxytes; +5 magic and +6 ranged accuracy; melee strength is not magic damage."));
 		items.add(item(GearSlot.RING, "magus ring", magic, 0, 0, 1, 75, 0, 0, 15, 2, 30_000_000, "High-end magic ring."));
 	}
 
@@ -458,6 +526,9 @@ public final class GearRecommendationEngine
 	{
 		switch (name == null ? "" : name.toLowerCase(Locale.ROOT))
 		{
+			case "smoke battlestaff": return 11998;
+			case "twinflame staff": return 30634;
+			case "harmonised nightmare staff": return 24423;
 			case "trident of the seas": return 11907;
 			case "trident of the swamp": return 12899;
 			case "sanguinesti staff": return 22323;

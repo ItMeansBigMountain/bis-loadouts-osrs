@@ -18,6 +18,8 @@ The plugin is intentionally lightweight for its first Plugin Hub candidate relea
 
 - RuneLite side panel with selected boss, combat style, estimated DPS, hit chance, max hit, warnings, and gear recommendations by slot.
 - Best-available setup recommendations for melee styles, ranged, and magic.
+- Typed Air/Water/Earth/Fire weaknesses from live monster data or curated fallback profiles, with matching elemental spell, tier scaling, accuracy-roll bonus, and max-hit scaling.
+- Elemental weapon handling for Harmonised nightmare staff, smoke battlestaff, and Twinflame staff; powered staves do not incorrectly receive elemental bonuses.
 - One-handed/two-handed weapon handling with offhand recommendations when applicable.
 - Ranged ammo compatibility filtering for arrows, bolts, darts, and no-ammo weapons.
 - Boss search/autocomplete backed by public boss data, with blank search supported for general best-by-stats gear.
@@ -47,6 +49,29 @@ BIS Loadouts makes read-only `GET` requests to these public services:
 The plugin has no custom backend, account system, API keys, uploads, or telemetry. Public API failures fall back to bundled/local data.
 
 More detail is in [`docs/wiki-gearscape-integration.md`](docs/wiki-gearscape-integration.md).
+
+## Elemental scaling model
+
+For a matching standard-spellbook Strike, Bolt, Blast, Wave, or Surge spell, each point of a monster's elemental weakness adds 1% to the spell's accuracy roll and 1% of base spell damage. The max-hit path follows the OSRS order used here:
+
+```text
+floor(base max hit × (1 + applicable magic-damage %))
++ floor(base max hit × elemental weakness %)
+```
+
+Wind, Water, and Earth spells scale within their unlocked tier to the strongest elemental spell the player has unlocked in that tier. The recommendation uses the highest tier available for the target's element and the player's current Magic level.
+
+Weapon exceptions are modeled explicitly:
+
+- Powered staves use built-in spells and receive no elemental-weakness bonus.
+- Harmonised nightmare staff autocasts offensive standard spells at 4 ticks.
+- Smoke battlestaff contributes its hidden 10% standard-spell accuracy and damage bonus.
+- Twinflame staff contributes its hidden 10% bonus, uses a 6-tick cast cycle, switches to the target's assigned element when requirements are met, and applies its 40% second hit only to Bolt, Blast, and Wave spells.
+- Royal Titans are represented as two targets rather than one false combined weakness: Branda is 50% weak to Water and Eldric is 50% weak to Fire.
+
+The displayed overall DPS and hit chance remain estimates, not a tick-perfect simulator. The plugin does not currently know the player's active prayer, temporary boosts, attack stance, Slayer/Salve state, tome charges, raid scaling, defence drains, phase-specific immunities, or manual-casting behavior. Elemental base damage and weakness modifiers are applied accurately to the available inputs; the surrounding baseline remains the plugin's documented recommendation heuristic.
+
+Authoritative references: [OSRS Wiki elemental weakness](https://oldschool.runescape.wiki/w/Elemental_weakness), [standard spellbook](https://oldschool.runescape.wiki/w/Standard_spellbook), [maximum magic hit](https://oldschool.runescape.wiki/w/Maximum_magic_hit), and Jagex's [Project Rebalance combat changes](https://secure.runescape.com/m=news/project-rebalance-combat-changes?oldschool=true).
 
 ## Configuration
 

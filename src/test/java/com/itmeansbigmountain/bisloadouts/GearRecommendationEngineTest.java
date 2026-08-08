@@ -239,6 +239,37 @@ public class GearRecommendationEngineTest
 	}
 
 	@Test
+	public void elementalWeaknessSelectsAStandardSpellCasterAndUsesSpellScaling()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+		BossTarget weakBoss = new BossTarget("Elemental test boss", -1, 500, 99, 99, 99, 99, 99,
+			1000, 100, 100, 100, 150, 150, ElementalType.FIRE, 80,
+			java.util.Collections.singletonList("boss"), "https://oldschool.runescape.wiki/", "test");
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			weakBoss, CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats, java.util.Collections.emptyList());
+
+		assertTrue(ElementalSpellScaling.canCastElementalSpell(recommendation.getItem(GearSlot.WEAPON).getName()));
+		assertTrue(recommendation.getWarnings().stream().anyMatch(warning -> warning.contains("80% Fire weakness") && warning.contains("Fire Surge")));
+		assertTrue("elemental formula should exceed the old generic magic max-hit estimate", recommendation.getMaxHit() > 40);
+	}
+
+	@Test
+	public void poweredStaffDoesNotReceiveElementalBonusWhenItRemainsSelected()
+	{
+		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);
+		BossTarget minorWeakness = new BossTarget("Minor weakness", -1, 500, 99, 99, 99, 99, 99,
+			1000, 100, 100, 100, 150, 150, ElementalType.EARTH, 1,
+			java.util.Collections.singletonList("boss"), "https://oldschool.runescape.wiki/", "test");
+
+		SetupRecommendation recommendation = GearRecommendationEngine.recommend(
+			minorWeakness, CombatStyle.MAGIC, BudgetTier.NO_LIMIT, stats, java.util.Collections.emptyList());
+
+		assertEquals("tumeken's shadow", recommendation.getItem(GearSlot.WEAPON).getName());
+		assertTrue(recommendation.getWarnings().stream().anyMatch(warning -> warning.contains("selected powered/non-standard staff receives no weakness bonus")));
+	}
+
+	@Test
 	public void recommendedItemsUseOldSchoolWikiLinksAndCanonicalItemNames()
 	{
 		PlayerStats stats = new PlayerStats(99, 99, 99, 99, 99, 99, 99);

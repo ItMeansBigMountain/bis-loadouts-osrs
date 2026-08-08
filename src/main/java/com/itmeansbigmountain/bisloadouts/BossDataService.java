@@ -237,6 +237,8 @@ public class BossDataService
 			intValue(monster, "def_crush", 0),
 			intValue(monster, "def_magic", 0),
 			intValue(monster, "def_ranged", 0),
+			ElementalType.fromApi(stringValue(monster, "weakness_type", "")),
+			intValue(monster, "weakness", 0),
 			entry.getAttributes(),
 			wikiUrl,
 			"OSRS Wiki + GearScape monster detail API"
@@ -278,39 +280,40 @@ public class BossDataService
 	{
 		Map<String, BossTarget> targets = new HashMap<>();
 		addLocalBoss(targets, "Amoxliatl", 263, 520, 0, 0, 80, 170, 0, 100, 100, 40, 100, 200,
-			Arrays.asList("boss", "spectral"), "25 September 2024");
+			ElementalType.FIRE, 30, Arrays.asList("boss", "spectral"), "25 September 2024");
 		addLocalBoss(targets, "The Hueycoatl", 642, 2500, 150, 50, 125, 50, 50, 100, 100, 0, 200, 350,
-			Arrays.asList("boss", "draconic"), "25 September 2024");
+			ElementalType.EARTH, 60, Arrays.asList("boss", "draconic"), "25 September 2024");
 		addLocalBoss(targets, "Royal Titans", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
-			Arrays.asList("boss", "giant"), "5 February 2025");
+			ElementalType.NONE, 0, Arrays.asList("boss", "giant", "Branda: 50% Water; Eldric: 50% Fire"), "5 February 2025");
 		addLocalBoss(targets, "Branda the Fire Queen", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
-			Arrays.asList("boss", "giant", "fiery"), "5 February 2025");
+			ElementalType.WATER, 50, Arrays.asList("boss", "giant", "fiery"), "5 February 2025");
 		addLocalBoss(targets, "Eldric the Ice King", 350, 600, 300, 250, 100, 100, 150, 12, 12, 0, 700, 700,
-			Arrays.asList("boss", "giant", "icy"), "5 February 2025");
+			ElementalType.FIRE, 50, Arrays.asList("boss", "giant", "icy"), "5 February 2025");
 		addLocalBoss(targets, "Yama", 1238, 2500, 320, 350, 225, 250, 210, 100, 80, 333, 60, 220,
-			Arrays.asList("boss", "demon"), "14 May 2025");
+			ElementalType.WATER, 50, Arrays.asList("boss", "demon"), "14 May 2025");
 		addLocalBoss(targets, "Doom of Mokhaiotl", 558, 525, 300, 190, 90, 275, 110, 300, 300, 60, 160, 160,
-			Arrays.asList("boss", "demon"), "23 July 2025");
+			ElementalType.NONE, 0, Arrays.asList("boss", "demon"), "23 July 2025");
 		addLocalBoss(targets, "Gemstone Crab", 160, 300, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-			Arrays.asList("boss", "training", "effectively infinite HP; 300 effective HP for ruby bolts"), "23 July 2025");
+			ElementalType.NONE, 0, Arrays.asList("boss", "training", "effectively infinite HP; 300 effective HP for ruby bolts"), "23 July 2025");
 		addLocalBoss(targets, "Brutus", 30, 58, 12, 25, 10, 8, 1, -7, -7, -7, -3, -7,
-			Arrays.asList("boss", "free-to-play"), "25 February 2026");
+			ElementalType.EARTH, 25, Arrays.asList("boss", "free-to-play"), "25 February 2026");
 		addLocalBoss(targets, "Demonic Brutus", 1224, 750, 380, 418, 200, 272, 1, 182, 65, 216, 520, 418,
-			Arrays.asList("boss", "hard mode"), "25 February 2026");
+			ElementalType.EARTH, 25, Arrays.asList("boss", "hard mode"), "25 February 2026");
 		addLocalBoss(targets, "Maggot King", 741, 1500, 200, 250, 200, 200, 300, 172, 100, 45, 150, 158,
-			Arrays.asList("boss"), "30 June 2026");
+			ElementalType.FIRE, 80, Arrays.asList("boss"), "30 June 2026");
 		addLocalBoss(targets, "Mad Angel", 588, 755, 150, 230, 175, 150, 250, 60, 80, 40, 185, 185,
-			Arrays.asList("boss", "golem"), "29 July 2026");
+			ElementalType.EARTH, 15, Arrays.asList("boss", "golem"), "29 July 2026");
 		return Collections.unmodifiableMap(targets);
 	}
 
 	private static void addLocalBoss(Map<String, BossTarget> targets, String name, int combat, int hitpoints,
 		int attack, int strength, int defence, int magic, int ranged, int defStab, int defSlash, int defCrush,
-		int defMagic, int defRanged, List<String> attributes, String releaseDate)
+		int defMagic, int defRanged, ElementalType elementalWeakness, int elementalWeaknessPercent,
+		List<String> attributes, String releaseDate)
 	{
 		targets.put(normalize(name), new BossTarget(name, -1, combat, loadoutTarget(attack), loadoutTarget(strength),
 			loadoutTarget(defence), loadoutTarget(ranged), loadoutTarget(magic), hitpoints, defStab, defSlash, defCrush,
-			defMagic, defRanged, attributes, OsrsWikiApiClient.pageUrl(name),
+			defMagic, defRanged, elementalWeakness, elementalWeaknessPercent, attributes, OsrsWikiApiClient.pageUrl(name),
 			"OSRS Wiki local profile; released " + releaseDate + "; used when GearScape detail is unavailable"));
 	}
 
