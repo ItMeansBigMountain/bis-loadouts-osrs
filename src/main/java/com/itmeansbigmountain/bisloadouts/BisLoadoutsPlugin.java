@@ -2,14 +2,12 @@ package com.itmeansbigmountain.bisloadouts;
 
 import com.google.inject.Provides;
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +25,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -203,21 +202,7 @@ public class BisLoadoutsPlugin extends Plugin
 		{
 			return;
 		}
-		try
-		{
-			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
-			{
-				Desktop.getDesktop().browse(URI.create(item.getWikiUrl()));
-			}
-			else
-			{
-				log.info("OSRS Wiki page for {}: {}", item.getName(), item.getWikiUrl());
-			}
-		}
-		catch (Exception ex)
-		{
-			log.warn("Unable to open OSRS Wiki page for {}: {}", item.getName(), item.getWikiUrl(), ex);
-		}
+		LinkBrowser.browse(item.getWikiUrl());
 	}
 
 	private void applyItemIcon(GearItem item, JLabel label)
