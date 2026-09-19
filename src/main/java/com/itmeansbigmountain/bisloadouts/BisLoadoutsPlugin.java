@@ -31,6 +31,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.AsyncBufferedImage;
+import okhttp3.OkHttpClient;
 
 @PluginDescriptor(
 	name = "BIS Loadouts",
@@ -54,7 +55,10 @@ public class BisLoadoutsPlugin extends Plugin
 	@Inject
 	private ItemManager itemManager;
 
-	private final BossDataService bossDataService = new BossDataService();
+	@Inject
+	private OkHttpClient okHttpClient;
+
+	private BossDataService bossDataService;
 	private ExecutorService apiExecutor;
 	private BisLoadoutsPanel panel;
 	private NavigationButton navButton;
@@ -65,6 +69,7 @@ public class BisLoadoutsPlugin extends Plugin
 	protected void startUp()
 	{
 		log.debug("BIS Loadouts started");
+		bossDataService = new BossDataService(okHttpClient);
 		apiExecutor = Executors.newSingleThreadExecutor();
 		panel = new BisLoadoutsPanel();
 		panel.setItemIconProvider(this::applyItemIcon);

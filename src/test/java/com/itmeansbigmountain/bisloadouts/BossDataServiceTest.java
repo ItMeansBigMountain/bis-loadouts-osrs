@@ -1,5 +1,6 @@
 package com.itmeansbigmountain.bisloadouts;
 
+import okhttp3.OkHttpClient;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -11,7 +12,7 @@ public class BossDataServiceTest
 	@Test
 	public void hasUsefulFallbackBossSuggestionsBeforeNetworkRefresh()
 	{
-		BossDataService service = new BossDataService();
+		BossDataService service = new BossDataService(new OkHttpClient());
 
 		assertTrue(service.getBossNameSuggestions(100).contains("Zulrah"));
 		assertTrue(service.getBossNameSuggestions(100).contains("Vorkath"));
@@ -21,7 +22,7 @@ public class BossDataServiceTest
 	@Test
 	public void newestReleasedBossesAreAvailableWithoutNetworkRefresh()
 	{
-		BossDataService service = new BossDataService();
+		BossDataService service = new BossDataService(new OkHttpClient());
 		java.util.List<String> bosses = service.getBossNameSuggestions(100);
 
 		for (String boss : java.util.Arrays.asList(
@@ -35,7 +36,7 @@ public class BossDataServiceTest
 	@Test
 	public void newestBossesUseResearchedLocalProfilesWhenLiveDetailIsUnavailable()
 	{
-		BossDataService service = new BossDataService();
+		BossDataService service = new BossDataService(new OkHttpClient());
 
 		BossTarget yama = service.resolveBoss("Yama", BossProfile.GENERAL_PVM);
 		assertEquals(1238, yama.getTargetCombat());
@@ -60,7 +61,7 @@ public class BossDataServiceTest
 	@Test
 	public void noneBossResolvesToBestOverallTarget()
 	{
-		BossDataService service = new BossDataService();
+		BossDataService service = new BossDataService(new OkHttpClient());
 
 		BossTarget target = service.resolveBoss("None - best overall for my stats", BossProfile.ZULRAH);
 

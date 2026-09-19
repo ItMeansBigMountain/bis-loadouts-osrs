@@ -4,26 +4,19 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class OsrsWikiApiClient
 {
 	private static final String API = "https://oldschool.runescape.wiki/api.php";
 	private static final String USER_AGENT = "BisLoadouts/1.0 (RuneLite plugin; github.com/ItMeansBigMountain/bis-loadouts-osrs)";
-	private final HttpClient httpClient;
+	private final OkHttpClient httpClient;
 
-	public OsrsWikiApiClient()
-	{
-		this(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build());
-	}
-
-	OsrsWikiApiClient(HttpClient httpClient)
+	public OsrsWikiApiClient(OkHttpClient httpClient)
 	{
 		this.httpClient = httpClient;
 	}
@@ -32,25 +25,27 @@ public class OsrsWikiApiClient
 	{
 		String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
 		String url = API + "?action=opensearch&format=json&limit=1&namespace=0&search=" + encoded;
-		HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-			.timeout(Duration.ofSeconds(10))
-			.header("User-Agent", USER_AGENT)
-			.GET()
-			.build();
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		if (response.statusCode() >= 400)
+		Request request = new Request.Builder().url(url).header("User-Agent", USER_AGENT).get().build();
+		try (Response response = httpClient.newCall(request).execute())
 		{
-			throw new IOException("OSRS Wiki API returned HTTP " + response.statusCode());
+			if (!response.isSuccessful())
+			{
+				throw new IOException("OSRS Wiki API returned HTTP " + response.code());
+			}
+			if (response.body() == null)
+			{
+				throw new IOException("OSRS Wiki API returned an empty response body");
+			}
+			JsonArray root = new JsonParser().parse(response.body().string()).getAsJsonArray();
+			JsonArray titles = root.get(1).getAsJsonArray();
+			JsonArray descriptions = root.get(2).getAsJsonArray();
+			JsonArray urls = root.get(3).getAsJsonArray();
+			if (titles.size() == 0)
+			{
+				return new WikiPage(query, pageUrl(query), "No exact wiki page match returned.");
+			}
+			return new WikiPage(titles.get(0).getAsString(), urls.get(0).getAsString(), descriptions.size() > 0 ? descriptions.get(0).getAsString() : "");
 		}
-		JsonArray root = new JsonParser().parse(response.body()).getAsJsonArray();
-		JsonArray titles = root.get(1).getAsJsonArray();
-		JsonArray descriptions = root.get(2).getAsJsonArray();
-		JsonArray urls = root.get(3).getAsJsonArray();
-		if (titles.size() == 0)
-		{
-			return new WikiPage(query, pageUrl(query), "No exact wiki page match returned.");
-		}
-		return new WikiPage(titles.get(0).getAsString(), urls.get(0).getAsString(), descriptions.size() > 0 ? descriptions.get(0).getAsString() : "");
 	}
 
 	public static String pageUrl(String title)

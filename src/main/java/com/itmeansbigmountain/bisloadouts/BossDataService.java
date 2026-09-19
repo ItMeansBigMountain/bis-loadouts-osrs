@@ -5,12 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +21,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class BossDataService
 {
@@ -49,19 +47,19 @@ public class BossDataService
 	);
 	private static final Map<String, BossTarget> LOCAL_BOSS_TARGETS = buildLocalBossTargets();
 
-	private final HttpClient httpClient;
+	private final OkHttpClient httpClient;
 	private final OsrsWikiApiClient wikiClient;
 	private final AtomicReference<List<BossIndexEntry>> bossIndex = new AtomicReference<>(fallbackBossEntries());
 	private final AtomicReference<List<GearItem>> gearItems = new AtomicReference<>(Collections.emptyList());
 	private volatile Instant loadedAt;
 	private volatile String status = "Wiki/GearScape data has not loaded yet.";
 
-	public BossDataService()
+	public BossDataService(OkHttpClient httpClient)
 	{
-		this(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build(), new OsrsWikiApiClient());
+		this(httpClient, new OsrsWikiApiClient(httpClient));
 	}
 
-	BossDataService(HttpClient httpClient, OsrsWikiApiClient wikiClient)
+	BossDataService(OkHttpClient httpClient, OsrsWikiApiClient wikiClient)
 	{
 		this.httpClient = httpClient;
 		this.wikiClient = wikiClient;
@@ -493,32 +491,36 @@ public class BossDataService
 
 	private JsonObject getJson(String url) throws IOException, InterruptedException
 	{
-		HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-			.timeout(Duration.ofSeconds(20))
-			.header("User-Agent", USER_AGENT)
-			.GET()
-			.build();
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		if (response.statusCode() >= 400)
+		Request request = new Request.Builder().url(url).header("User-Agent", USER_AGENT).get().build();
+		try (Response response = httpClient.newCall(request).execute())
 		{
-			throw new IOException(url + " returned HTTP " + response.statusCode());
+			if (!response.isSuccessful())
+			{
+				throw new IOException(url + " returned HTTP " + response.code());
+			}
+			if (response.body() == null)
+			{
+				throw new IOException(url + " returned an empty response body");
+			}
+			return new JsonParser().parse(response.body().string()).getAsJsonObject();
 		}
-		return new JsonParser().parse(response.body()).getAsJsonObject();
 	}
 
 	private JsonArray getJsonArray(String url) throws IOException, InterruptedException
 	{
-		HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-			.timeout(Duration.ofSeconds(20))
-			.header("User-Agent", USER_AGENT)
-			.GET()
-			.build();
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		if (response.statusCode() >= 400)
+		Request request = new Request.Builder().url(url).header("User-Agent", USER_AGENT).get().build();
+		try (Response response = httpClient.newCall(request).execute())
 		{
-			throw new IOException(url + " returned HTTP " + response.statusCode());
+			if (!response.isSuccessful())
+			{
+				throw new IOException(url + " returned HTTP " + response.code());
+			}
+			if (response.body() == null)
+			{
+				throw new IOException(url + " returned an empty response body");
+			}
+			return new JsonParser().parse(response.body().string()).getAsJsonArray();
 		}
-		return new JsonParser().parse(response.body()).getAsJsonArray();
 	}
 
 	private static GearSlot gearSlot(String key)
